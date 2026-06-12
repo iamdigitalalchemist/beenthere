@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(flutter test *)",
+      "Bash(flutter analyze *)",
+      "Bash(bun test:unit)",
+      "Bash(bun test:unit *)",
+      "Bash(xcrun simctl io *)",
+      "Bash(xcrun simctl list *)",
+      "Bash(xcrun simctl listapps *)",
+      "Bash(supabase status)",
+      "mcp__ide__getDiagnostics"
+    ]
+  }
+}
