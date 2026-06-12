@@ -1,0 +1,196 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import type { EventRecord, PhotoRecord } from "@/types/domain";
+
+const SLIDE_DURATION_MS = 6000;
+
+type EventSlideshowProps = {
+  event: EventRecord;
+  initialPhotos: PhotoRecord[];
+  joinPath: string;
+};
+
+type PhotosResponse = {
+  photos: PhotoRecord[];
+};
+
+function getVisibleReadyPhotos(photos: PhotoRecord[]) {
+  return photos.filter(
+    (photo) => photo.status === "ready" && photo.visibility === "visible",
+  );
+}
+
+export function EventSlideshow({
+  event,
+  initialPhotos,
+  joinPath,
+}: EventSlideshowProps) {
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+
+  const visiblePhotos = useMemo(() => getVisibleReadyPhotos(photos), [photos]);
+  const safeActiveIndex =
+    visiblePhotos.length === 0 ? 0 : activeIndex % visiblePhotos.length;
+  const activePhoto = visiblePhotos[safeActiveIndex];
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setLastUpdatedAt(
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isPaused || visiblePhotos.length <= 1) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((currentIndex) => (currentIndex + 1) % visiblePhotos.length);
+    }, SLIDE_DURATION_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [isPaused, visiblePhotos.length]);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`event-slideshow:${event.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "beenthere",
+          table: "photos",
+          filter: `event_id=eq.${event.id}`,
+        },
+        async () => {
+          const response = await fetch(`/api/events/${event.id}/photos`);
+          const body = (await response.json()) as PhotosResponse;
+
+          setPhotos(getVisibleReadyPhotos(body.photos));
+          setLastUpdatedAt(
+            new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [event.id]);
+
+  function showPreviousPhoto() {
+    setActiveIndex((currentIndex) =>
+      currentIndex === 0 ? Math.max(visiblePhotos.length - 1, 0) : currentIndex - 1,
+    );
+  }
+
+  function showNextPhoto() {
+    setActiveIndex((currentIndex) =>
+      visiblePhotos.length === 0 ? 0 : (currentIndex + 1) % visiblePhotos.length,
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <section className="relative flex min-h-screen flex-col overflow-hidden">
+        {activePhoto ? (
+          <div className="absolute inset-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt="Event slideshow photo"
+              className="h-full w-full object-contain"
+              src={activePhoto.previewUrl || activePhoto.thumbnailUrl}
+            />
+          </div>
+        ) : (
+          <div className="absolute inset-0 grid place-items-center bg-slate-950 px-6 text-center">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
+                Waiting for photos
+              </p>
+              <h1 className="mt-4 text-5xl font-semibold">{event.name}</h1>
+              <p className="mt-4 text-lg text-slate-300">
+                Scan the event QR code to add the first photos.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-6">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-200">
+                Live event wall
+              </p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+                {event.name}
+              </h1>
+            </div>
+            <div className="rounded-2xl bg-white/90 px-4 py-3 text-right text-slate-950">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Scan to join
+              </p>
+              <p className="mt-1 font-mono text-sm">{joinPath}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm text-slate-300">
+                {visiblePhotos.length} visible photo
+                {visiblePhotos.length === 1 ? "" : "s"}
+                {lastUpdatedAt ? ` · Updated ${lastUpdatedAt}` : ""}
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Uploader names are hidden by default for slideshow mode.
+              </p>
+            </div>
+            <div className="pointer-events-auto flex gap-2">
+              <button
+                className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
+                onClick={showPreviousPhoto}
+                type="button"
+              >
+                Previous
+              </button>
+              <button
+                className="rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-100"
+                onClick={() => setIsPaused((currentValue) => !currentValue)}
+                type="button"
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </button>
+              <button
+                className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
+                onClick={showNextPhoto}
+                type="button"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

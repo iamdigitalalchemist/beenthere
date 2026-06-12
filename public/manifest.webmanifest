@@ -1,0 +1,16 @@
+{
+  "name": "BeenThere",
+  "short_name": "BeenThere",
+  "description": "Private photo galleries for events.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

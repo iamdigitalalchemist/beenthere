@@ -1,26 +1,219 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #f7f5f2;
+  --surface: #ffffff;
+  --ink: #2c2825;
+  --ink-muted: #6b6560;
+  --border: #e8e4df;
+  --accent: #e07a5f;
+  --accent-hover: #c96a52;
+  --accent-soft: #f4e4de;
+  --shadow-soft: 0 12px 40px rgb(44 40 37 / 8%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --shadow-soft: var(--shadow-soft);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+@keyframes gallery-photo-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes banner-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes save-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes lightbox-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lightbox-photo-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.gallery-photo-enter {
+  animation: gallery-photo-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.new-photos-banner {
+  animation: banner-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sheet-overlay {
+  animation: lightbox-fade-in 0.2s ease forwards;
+}
+
+.sheet-panel {
+  animation: sheet-rise 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.save-pop:active {
+  animation: save-pop 0.25s ease;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .save-pop:active {
+    animation: none;
+  }
+}
+
+.lightbox-overlay,
+.photo-detail-overlay {
+  animation: lightbox-fade-in 0.2s ease forwards;
+}
+
+.lightbox-photo-enter {
+  animation: lightbox-photo-enter 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-photo-enter,
+  .new-photos-banner,
+  .sheet-overlay,
+  .sheet-panel,
+  .lightbox-overlay,
+  .photo-detail-overlay,
+  .lightbox-photo-enter,
+  .save-pop:active {
+    animation: none;
+  }
+}
+
+/* iOS Safari: entrance animations with fill-mode can swallow taps on touch devices. */
+@media (hover: none) and (pointer: coarse) {
+  .gallery-photo-enter,
+  .new-photos-banner,
+  .sheet-overlay,
+  .sheet-panel,
+  .lightbox-overlay,
+  .photo-detail-overlay,
+  .lightbox-photo-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.tap-target {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  touch-action: manipulation;
+}
+
+/* Avoid CSS columns — Safari paints 1px seams between column boxes on iOS. */
+.gallery-masonry {
+  display: grid;
+  gap: 0.75rem;
+  grid-auto-rows: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .gallery-masonry {
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-masonry {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+    size: A4;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-signage-root {
+    background: #ffffff !important;
+    min-height: auto !important;
+    padding: 0 !important;
+  }
+
+  .print-signage-card {
+    box-shadow: none !important;
+    max-width: none !important;
+    ring: none !important;
+    page-break-inside: avoid;
+  }
 }
