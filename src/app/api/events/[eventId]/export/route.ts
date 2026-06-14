@@ -1,7 +1,7 @@
 import { PassThrough, Readable } from "node:stream";
 import { NextResponse } from "next/server";
 import { ZipArchive } from "archiver";
-import { getHostUserForApi } from "@/server/auth";
+import { getEventManagerForApi } from "@/server/auth";
 import { getEventGallery } from "@/server/data";
 import { getDatabasePool } from "@/server/db";
 import { getR2ObjectBuffer } from "@/server/r2";
@@ -17,12 +17,6 @@ function safeFileName(value: string) {
 }
 
 export async function GET(_request: Request, { params }: EventExportRouteProps) {
-  const host = await getHostUserForApi();
-
-  if (!host.ok) {
-    return NextResponse.json({ error: host.error }, { status: host.status });
-  }
-
   if (!getDatabasePool()) {
     return NextResponse.json(
       { error: "Exports require a configured database." },
@@ -35,6 +29,12 @@ export async function GET(_request: Request, { params }: EventExportRouteProps) 
 
   if (!gallery) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
+  }
+
+  const host = await getEventManagerForApi(gallery.event.ownerUserId);
+
+  if (!host.ok) {
+    return NextResponse.json({ error: host.error }, { status: host.status });
   }
 
   const photos = gallery.photos.filter(

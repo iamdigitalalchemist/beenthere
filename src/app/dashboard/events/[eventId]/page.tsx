@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ActivateEventBanner } from "@/components/dashboard/activate-event-banner";
 import { EventPinSettings } from "@/components/dashboard/event-pin-settings";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { getJoinPath } from "@/lib/join";
-import { requireHostUser } from "@/server/auth";
+import { canManageEvent, requireUser } from "@/server/auth";
 import { getDashboardEvent } from "@/server/data";
 
 type DashboardEventPageProps = {
@@ -20,15 +21,15 @@ function formatBytes(bytes: number) {
 export default async function DashboardEventPage({
   params,
 }: DashboardEventPageProps) {
-  await requireHostUser();
+  const user = await requireUser();
   const { eventId } = await params;
   const dashboard = await getDashboardEvent(eventId);
 
-  if (!dashboard) {
+  if (!dashboard || !canManageEvent(user, dashboard.event.ownerUserId)) {
     notFound();
   }
 
-  const joinPath = getJoinPath();
+  const joinPath = getJoinPath(dashboard.event.joinToken || undefined);
   const storagePercent = Math.round(
     (dashboard.event.storageUsedBytes / dashboard.event.storageLimitBytes) * 100,
   );
@@ -78,6 +79,10 @@ export default async function DashboardEventPage({
             </Link>
           </div>
         </div>
+
+        {dashboard.event.status === "draft" ? (
+          <ActivateEventBanner eventPublicId={dashboard.event.publicId} />
+        ) : null}
 
         <section className="grid gap-4 md:grid-cols-4">
           <article className="rounded-3xl bg-surface p-5 shadow-sm ring-1 ring-border">

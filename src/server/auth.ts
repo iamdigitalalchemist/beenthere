@@ -60,23 +60,30 @@ export function isHostUser(user: AuthenticatedUser | undefined) {
   return Boolean(user && isWhitelistedEmail(user.email));
 }
 
-export async function requireHostUser(): Promise<AuthenticatedUser> {
+export async function requireUser(): Promise<AuthenticatedUser> {
   const user = await getAuthenticatedUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  if (!isHostUser(user)) {
-    redirect("/login?error=not_allowed");
-  }
-
   return user;
 }
 
-export async function getHostUserForApi(): Promise<
+export function canManageEvent(
+  user: AuthenticatedUser | undefined,
+  ownerUserId: string | undefined | null,
+) {
+  if (!user) {
+    return false;
+  }
+
+  return isWhitelistedEmail(user.email) || (!!ownerUserId && ownerUserId === user.id);
+}
+
+export async function getUserForApi(): Promise<
   | { ok: true; user: AuthenticatedUser }
-  | { ok: false; status: 401 | 403; error: string }
+  | { ok: false; status: 401; error: string }
 > {
   const user = await getAuthenticatedUser();
 
@@ -84,13 +91,28 @@ export async function getHostUserForApi(): Promise<
     return { ok: false, status: 401, error: "Sign in required." };
   }
 
-  if (!isHostUser(user)) {
+  return { ok: true, user };
+}
+
+export async function getEventManagerForApi(
+  ownerUserId: string | undefined | null,
+): Promise<
+  | { ok: true; user: AuthenticatedUser }
+  | { ok: false; status: 401 | 403; error: string }
+> {
+  const auth = await getUserForApi();
+
+  if (!auth.ok) {
+    return auth;
+  }
+
+  if (!canManageEvent(auth.user, ownerUserId)) {
     return {
       ok: false,
       status: 403,
-      error: "This account is not allowed to manage events.",
+      error: "You do not manage this event.",
     };
   }
 
-  return { ok: true, user };
+  return auth;
 }

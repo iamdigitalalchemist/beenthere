@@ -76,6 +76,25 @@ One-time Supabase setup:
 The app handles the rest: `/login` starts the OAuth flow and
 `/auth/callback` exchanges the code for a session cookie.
 
+## Billing (RevenueCat)
+
+Any signed-in Google user can create draft events for free. Taking an event
+live is the paywall: it requires an active RevenueCat entitlement (default id
+`host`), checked server-side. Emails in `HOST_EMAIL_ALLOWLIST` bypass billing
+entirely.
+
+One-time RevenueCat setup:
+
+1. Create a RevenueCat project and a **Web Billing** app (this connects to a
+   Stripe account for processing).
+2. Create a product, attach it to the default offering, and create an
+   entitlement named `host` granted by that product.
+3. Copy the Web Billing public key into `NEXT_PUBLIC_REVENUECAT_WEB_API_KEY`
+   and a secret API key into `REVENUECAT_SECRET_API_KEY`.
+
+Until the keys are set, activation responds 402 for non-allowlisted users and
+the upgrade page explains that billing isn't configured.
+
 ## R2 CORS
 
 The browser uploads directly to R2, so the bucket needs CORS that allows `PUT`

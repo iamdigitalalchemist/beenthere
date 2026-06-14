@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getHostUserForApi } from "@/server/auth";
-import { setPhotoVisibility } from "@/server/data";
+import { getEventManagerForApi } from "@/server/auth";
+import { getPhotoEventOwner, setPhotoVisibility } from "@/server/data";
 import type { PhotoVisibility } from "@/types/domain";
 
 type PhotoRouteProps = {
@@ -10,13 +10,19 @@ type PhotoRouteProps = {
 };
 
 export async function PATCH(request: Request, { params }: PhotoRouteProps) {
-  const host = await getHostUserForApi();
+  const { photoId } = await params;
+  const photoEvent = await getPhotoEventOwner(photoId);
+
+  if (!photoEvent) {
+    return NextResponse.json({ error: "Photo not found." }, { status: 404 });
+  }
+
+  const host = await getEventManagerForApi(photoEvent.ownerUserId);
 
   if (!host.ok) {
     return NextResponse.json({ error: host.error }, { status: host.status });
   }
 
-  const { photoId } = await params;
   const body = (await request.json()) as Partial<{
     visibility: PhotoVisibility;
   }>;

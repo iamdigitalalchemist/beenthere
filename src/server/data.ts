@@ -7,6 +7,7 @@ import {
   getDemoPinHash,
   setDemoPinHash,
 } from "@/lib/demo-data";
+import { randomBytes } from "node:crypto";
 import { sha256Hex } from "@/server/crypto";
 import { normalizeEventPin } from "@/server/pin-policy";
 import { getDatabasePool } from "@/server/db";
@@ -23,6 +24,8 @@ import type {
 type EventRow = {
   id: string;
   public_id: string;
+  owner_user_id: string | null;
+  join_token: string | null;
   name: string;
   template: string;
   status: EventRecord["status"];
@@ -71,7 +74,8 @@ function mapEventRow(row: EventRow): EventRecord {
   return {
     id: row.id,
     publicId: row.public_id,
-    joinToken: "",
+    ownerUserId: row.owner_user_id ?? undefined,
+    joinToken: row.join_token ?? "",
     name: row.name,
     template: row.template as EventTemplate,
     status: row.status,
@@ -293,9 +297,10 @@ export async function getEventByJoinToken(token: string) {
   }
 
   const { rows } = await pool.query<EventRow>(
-    `select id, public_id, name, template, status, plan, starts_at, ends_at,
-            upload_closes_at, gallery_expires_at, language, welcome_message,
-            pin_hash, storage_limit_bytes, storage_used_bytes
+    `select id, public_id, owner_user_id, join_token, name, template, status,
+            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
+            language, welcome_message, pin_hash, storage_limit_bytes,
+            storage_used_bytes
        from beenthere.events
       where join_token_hash = $1
       limit 1`,
@@ -324,9 +329,10 @@ export async function getEventGallery(publicId: string) {
   }
 
   const eventResult = await pool.query<EventRow>(
-    `select id, public_id, name, template, status, plan, starts_at, ends_at,
-            upload_closes_at, gallery_expires_at, language, welcome_message,
-            pin_hash, storage_limit_bytes, storage_used_bytes
+    `select id, public_id, owner_user_id, join_token, name, template, status,
+            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
+            language, welcome_message, pin_hash, storage_limit_bytes,
+            storage_used_bytes
        from beenthere.events
       where public_id = $1
       limit 1`,
@@ -534,6 +540,159 @@ export async function setPhotoVisibility(input: {
   await pool.query(`delete from beenthere.photo_reports where photo_id = $1`, [
     input.photoId,
   ]);
+}
+
+const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
+  template, status, plan, starts_at, ends_at, upload_closes_at,
+  gallery_expires_at, language, welcome_message, pin_hash,
+  storage_limit_bytes, storage_used_bytes`;
+
+const DEFAULT_EVENT_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;
+
+function createPublicId(name: string) {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 32);
+  const suffix = randomBytes(4).toString("hex");
+  return slug ? `${slug}-${suffix}` : suffix;
+}
+
+export async function createEvent(input: {
+  ownerUserId: string;
+  name: string;
+  template: EventTemplate;
+  startsAt: Date;
+}): Promise<EventRecord> {
+  const pool = getDatabasePool();
+
+  if (!pool) {
+    throw new Error("POSTGRES_URL is not configured.");
+  }
+
+  const joinToken = randomBytes(18).toString("base64url");
+  const startsAt = input.startsAt;
+  const endsAt = new Date(startsAt.getTime() + 24 * 60 * 60 * 1000);
+  const uploadClosesAt = new Date(startsAt.getTime() + 48 * 60 * 60 * 1000);
+  const galleryExpiresAt = new Date(
+    startsAt.getTime() + 30 * 24 * 60 * 60 * 1000,
+  );
+
+  const { rows } = await pool.query<EventRow>(
+    `insert into beenthere.events (
+        owner_user_id, public_id, join_token, join_token_hash, name, template,
+        status, plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
+        storage_limit_bytes
+      )
+      values ($1, $2, $3, $4, $5, $6, 'draft', 'draft', $7, $8, $9, $10, $11)
+      returning ${EVENT_SELECT_COLUMNS}`,
+    [
+      input.ownerUserId,
+      createPublicId(input.name),
+      joinToken,
+      sha256Hex(joinToken),
+      input.name,
+      input.template,
+      startsAt.toISOString(),
+      endsAt.toISOString(),
+      uploadClosesAt.toISOString(),
+      galleryExpiresAt.toISOString(),
+      DEFAULT_EVENT_STORAGE_LIMIT_BYTES,
+    ],
+  );
+
+  return mapEventRow(rows[0]);
+}
+
+export async function getEventsByOwner(
+  ownerUserId: string,
+): Promise<EventRecord[]> {
+  const pool = getDatabasePool();
+
+  if (!pool) {
+    return [];
+  }
+
+  const { rows } = await pool.query<EventRow>(
+    `select ${EVENT_SELECT_COLUMNS}
+       from beenthere.events
+      where owner_user_id = $1
+      order by created_at desc`,
+    [ownerUserId],
+  );
+
+  return rows.map(mapEventRow);
+}
+
+export async function getEventByPublicId(
+  publicId: string,
+): Promise<EventRecord | undefined> {
+  const pool = getDatabasePool();
+
+  if (!pool) {
+    const event = getDemoEventByPublicId(publicId);
+    return event ?? undefined;
+  }
+
+  const { rows } = await pool.query<EventRow>(
+    `select ${EVENT_SELECT_COLUMNS}
+       from beenthere.events
+      where public_id = $1
+      limit 1`,
+    [publicId],
+  );
+
+  return rows[0] ? mapEventRow(rows[0]) : undefined;
+}
+
+export async function getPhotoEventOwner(
+  photoId: string,
+): Promise<{ ownerUserId?: string } | undefined> {
+  const pool = getDatabasePool();
+
+  if (!pool) {
+    return undefined;
+  }
+
+  const { rows } = await pool.query<{ owner_user_id: string | null }>(
+    `select e.owner_user_id
+       from beenthere.photos p
+       join beenthere.events e on e.id = p.event_id
+      where p.id = $1
+      limit 1`,
+    [photoId],
+  );
+
+  if (!rows[0]) {
+    return undefined;
+  }
+
+  return { ownerUserId: rows[0].owner_user_id ?? undefined };
+}
+
+export async function activateEvent(publicId: string): Promise<EventRecord> {
+  const pool = getDatabasePool();
+
+  if (!pool) {
+    throw new Error("POSTGRES_URL is not configured.");
+  }
+
+  const { rows } = await pool.query<EventRow>(
+    `update beenthere.events
+        set status = 'active',
+            plan = 'event',
+            updated_at = now()
+      where public_id = $1
+      returning ${EVENT_SELECT_COLUMNS}`,
+    [publicId],
+  );
+
+  if (!rows[0]) {
+    throw new Error("Event not found.");
+  }
+
+  return mapEventRow(rows[0]);
 }
 
 export async function createGuestParticipant(input: {

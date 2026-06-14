@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getHostUserForApi } from "@/server/auth";
+import { getEventManagerForApi } from "@/server/auth";
+import { getEventByPublicId } from "@/server/data";
 import { isSecureCookieContext } from "@/server/cookie-policy";
 import { updateEventPin, verifyEventPin } from "@/server/data";
 import { setPinAccessCookie } from "@/server/pin-access";
@@ -37,13 +38,19 @@ export async function POST(request: Request, { params }: EventPinRouteProps) {
 }
 
 export async function PATCH(request: Request, { params }: EventPinRouteProps) {
-  const host = await getHostUserForApi();
+  const { eventId } = await params;
+  const event = await getEventByPublicId(eventId);
+
+  if (!event) {
+    return NextResponse.json({ error: "Event not found." }, { status: 404 });
+  }
+
+  const host = await getEventManagerForApi(event.ownerUserId);
 
   if (!host.ok) {
     return NextResponse.json({ error: host.error }, { status: host.status });
   }
 
-  const { eventId } = await params;
   const body = (await request.json()) as Partial<{
     pin: string | null;
   }>;

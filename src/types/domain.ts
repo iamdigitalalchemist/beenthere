@@ -33,6 +33,7 @@ export type EventTemplate =
 export type EventRecord = {
   id: string;
   publicId: string;
+  ownerUserId?: string;
   joinToken: string;
   name: string;
   template: EventTemplate;

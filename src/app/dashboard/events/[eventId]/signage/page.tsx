@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PrintSignageButton } from "@/components/dashboard/print-signage-button";
 import { getAppOrigin } from "@/lib/app-url";
 import { getJoinPath, getJoinUrl } from "@/lib/join";
-import { requireHostUser } from "@/server/auth";
+import { canManageEvent, requireUser } from "@/server/auth";
 import { getDashboardEvent } from "@/server/data";
 import { createJoinQrDataUrl } from "@/server/qr";
 
@@ -15,17 +15,18 @@ type SignagePageProps = {
 };
 
 export default async function SignagePage({ params }: SignagePageProps) {
-  await requireHostUser();
+  const user = await requireUser();
   const { eventId } = await params;
   const dashboard = await getDashboardEvent(eventId);
 
-  if (!dashboard) {
+  if (!dashboard || !canManageEvent(user, dashboard.event.ownerUserId)) {
     notFound();
   }
 
   const origin = await getAppOrigin();
-  const joinPath = getJoinPath();
-  const joinUrl = getJoinUrl(origin);
+  const joinToken = dashboard.event.joinToken || undefined;
+  const joinPath = getJoinPath(joinToken);
+  const joinUrl = getJoinUrl(origin, joinToken);
   const qrDataUrl = await createJoinQrDataUrl(joinUrl);
 
   return (
