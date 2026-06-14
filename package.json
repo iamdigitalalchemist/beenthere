@@ -14,6 +14,7 @@
     "@revenuecat/purchases-js": "^1.42.4",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.107.0",
+    "@trigger.dev/sdk": "^4.4.6",
     "archiver": "^8.0.0",
     "next": "16.2.7",
     "pg": "^8.21.0",

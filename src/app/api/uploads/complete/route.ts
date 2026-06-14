@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDatabasePool } from "@/server/db";
-import { processUploadedPhoto } from "@/server/photo-jobs";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
+import { tasks } from "@trigger.dev/sdk/v3";
+import type { photoProcessingTask } from "@/trigger/photo-processing";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<{
@@ -28,10 +29,15 @@ export async function POST(request: Request) {
   const photoResult = await pool.query<{
       id: string;
       event_id: string;
+      event_participant_id: string;
       original_key: string;
+      original_file_name: string;
+      original_content_type: string;
       original_size_bytes: number;
+      uploaded_at: string;
     }>(
-    `select id, event_id, original_key, original_size_bytes
+    `select id, event_id, event_participant_id, original_key,
+            original_file_name, original_content_type, original_size_bytes, uploaded_at
        from beenthere.photos
       where id = $1 and original_key = $2
       limit 1`,
@@ -62,7 +68,26 @@ export async function POST(request: Request) {
     photoRow.original_size_bytes,
   ]);
 
-  const photo = await processUploadedPhoto(photoRow.id);
+  await tasks.trigger<typeof photoProcessingTask>("process-uploaded-photo", {
+    photoId: photoRow.id,
+  });
 
-  return NextResponse.json({ photo });
+  return NextResponse.json({
+    photo: {
+      id: photoRow.id,
+      eventId: photoRow.event_id,
+      participantId: photoRow.event_participant_id,
+      status: "processing",
+      visibility: "visible",
+      originalKey: photoRow.original_key,
+      thumbnailUrl: null,
+      previewUrl: null,
+      originalFileName: photoRow.original_file_name,
+      originalContentType: photoRow.original_content_type,
+      originalSizeBytes: Number(photoRow.original_size_bytes),
+      width: 1,
+      height: 1,
+      uploadedAt: photoRow.uploaded_at,
+    },
+  });
 }
