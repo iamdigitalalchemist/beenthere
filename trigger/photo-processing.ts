@@ -1,5 +1,5 @@
 import { task } from "@trigger.dev/sdk/v3";
-import { processUploadedPhoto } from "@/server/photo-jobs";
+import { processUploadedPhoto } from "../src/server/photo-jobs";
 
 export const photoProcessingTask = task({
   id: "process-uploaded-photo",

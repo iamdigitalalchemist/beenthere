@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDatabasePool } from "@/server/db";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
 import { tasks } from "@trigger.dev/sdk/v3";
-import type { photoProcessingTask } from "@/trigger/photo-processing";
+import type { photoProcessingTask } from "../../../../trigger/photo-processing";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<{
