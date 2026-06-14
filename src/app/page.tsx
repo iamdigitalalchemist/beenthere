@@ -64,8 +64,8 @@ export default function Home() {
 
       {/* ── Desktop nav ─────────────────────────────────────── */}
       <header className="sticky top-0 z-20 hidden border-b border-black/5 bg-white/80 backdrop-blur-xl lg:block">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-4">
-          <Image alt="beenThere" height={22} src="/logo.webp" width={88} />
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-3">
+          <Image alt="beenThere" height={18} src="/logo.webp" width={72} />
           <nav className="flex items-center gap-7 text-sm font-medium text-ink-muted">
             <Link className="text-ink" href="/">Home</Link>
             <Link className="hover:text-ink transition" href="/join/demo-join-token">Demo</Link>
@@ -87,8 +87,8 @@ export default function Home() {
       </header>
 
       {/* ── Mobile nav ──────────────────────────────────────── */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-black/5 bg-white/80 px-5 py-3 backdrop-blur-xl lg:hidden">
-        <Image alt="beenThere" height={20} src="/logo.webp" width={80} />
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-black/5 bg-white/80 px-5 py-2.5 backdrop-blur-xl lg:hidden">
+        <Image alt="beenThere" height={16} src="/logo.webp" width={66} />
         <Link
           className="rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white shadow-sm"
           href="/login"
@@ -374,7 +374,7 @@ export default function Home() {
       {/* ── Footer (desktop) ─────────────────────────────────── */}
       <footer className="hidden border-t border-black/5 bg-white px-8 py-8 lg:block">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Image alt="beenThere" height={20} src="/logo.webp" width={80} />
+          <Image alt="beenThere" height={16} src="/logo.webp" width={66} />
           <p className="text-xs text-ink-muted">© 2026 beenThere. All rights reserved.</p>
           <div className="flex gap-5 text-xs text-ink-muted">
             <Link className="hover:text-ink transition" href="#">Privacy</Link>
