@@ -9,12 +9,14 @@ export function getDatabasePool() {
     return undefined;
   }
 
+  const isLocal = connectionString.includes("localhost") || connectionString.includes("127.0.0.1");
+
   pool ??= new Pool({
     connectionString,
-    max: 1,                      // serverless: one connection per function instance
-    idleTimeoutMillis: 10_000,   // release idle connections quickly
+    max: 1,
+    idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
-    ssl: { rejectUnauthorized: false },
+    ssl: isLocal ? false : { rejectUnauthorized: false },
   });
   return pool;
 }
