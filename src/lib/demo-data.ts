@@ -18,6 +18,7 @@ export const DEMO_EVENT: EventRecord = {
   welcomeMessage:
     "Scan in, see everyone&apos;s photos, and add your own favorite moments.",
   pinEnabled: false,
+  collectSocials: false,
   storageLimitBytes: 25 * 1024 * 1024 * 1024,
   storageUsedBytes: 148 * 1024 * 1024,
 };

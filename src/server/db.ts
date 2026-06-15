@@ -9,7 +9,13 @@ export function getDatabasePool() {
     return undefined;
   }
 
-  pool ??= new Pool({ connectionString });
+  pool ??= new Pool({
+    connectionString,
+    max: 1,                      // serverless: one connection per function instance
+    idleTimeoutMillis: 10_000,   // release idle connections quickly
+    connectionTimeoutMillis: 10_000,
+    ssl: { rejectUnauthorized: false },
+  });
   return pool;
 }
 

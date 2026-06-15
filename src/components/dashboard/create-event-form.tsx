@@ -21,6 +21,11 @@ type CreateEventResponse = {
   error?: string;
 };
 
+function todayLocalDateString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 export function CreateEventForm() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -29,10 +34,18 @@ export function CreateEventForm() {
   const [error, setError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const today = todayLocalDateString();
+
   async function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault();
     setIsSubmitting(true);
     setError(undefined);
+
+    if (startsAt && startsAt < today) {
+      setError("Event date must be today or in the future.");
+      setIsSubmitting(false);
+      return;
+    }
 
     const response = await fetch("/api/events", {
       method: "POST",
@@ -88,6 +101,7 @@ export function CreateEventForm() {
         <span className="text-sm font-semibold text-ink">Event date</span>
         <input
           className="rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+          min={today}
           onChange={(event) => setStartsAt(event.target.value)}
           type="date"
           value={startsAt}

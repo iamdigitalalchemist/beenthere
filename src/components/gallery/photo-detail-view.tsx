@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DownloadIcon } from "@/components/gallery/download-icon";
 import { HeartIcon } from "@/components/gallery/heart-icon";
 import { ParticipantAvatar } from "@/components/gallery/participant-avatar";
@@ -70,6 +70,8 @@ export function PhotoDetailView({
   const [taggingGuestId, setTaggingGuestId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showReportPanel, setShowReportPanel] = useState(false);
+  const [swipeDx, setSwipeDx] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const [reportReason, setReportReason] = useState("");
   const [reportStatus, setReportStatus] = useState<
     "idle" | "sending" | "sent" | "error"
@@ -178,6 +180,10 @@ export function PhotoDetailView({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
+      } else if (event.key === "ArrowLeft" && activeIndex > 0) {
+        onNavigate(activeIndex - 1);
+      } else if (event.key === "ArrowRight" && activeIndex < photos.length - 1) {
+        onNavigate(activeIndex + 1);
       }
     }
 
@@ -444,13 +450,80 @@ export function PhotoDetailView({
           </button>
         </div>
 
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt={`Photo by ${uploaderName}`}
-          className="lightbox-photo-enter mt-5 aspect-[4/5] w-full rounded-[2rem] bg-border object-cover shadow-soft"
-          key={photo.id}
-          src={photo.previewUrl || photo.thumbnailUrl}
-        />
+        <div
+          className="relative mt-5 touch-pan-y select-none"
+          onTouchCancel={() => { setSwipeDx(0); touchStartX.current = null; }}
+          onTouchEnd={(e) => {
+            const dx = swipeDx;
+            setSwipeDx(0);
+            touchStartX.current = null;
+            if (dx < -50 && activeIndex < photos.length - 1) onNavigate(activeIndex + 1);
+            else if (dx > 50 && activeIndex > 0) onNavigate(activeIndex - 1);
+          }}
+          onTouchMove={(e) => {
+            if (touchStartX.current === null) return;
+            const dx = e.touches[0].clientX - touchStartX.current;
+            setSwipeDx(dx);
+          }}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={`Photo by ${uploaderName}`}
+            className="lightbox-photo-enter aspect-[4/5] w-full rounded-[2rem] bg-border object-cover shadow-soft"
+            key={photo.id}
+            src={photo.previewUrl || photo.thumbnailUrl}
+            style={{
+              transform: swipeDx ? `translateX(${swipeDx * 0.35}px)` : undefined,
+              transition: swipeDx ? "none" : "transform 0.2s ease",
+            }}
+          />
+          {activeIndex > 0 && (
+            <button
+              aria-label="Previous photo"
+              className="absolute left-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              onClick={() => onNavigate(activeIndex - 1)}
+              type="button"
+            >
+              ‹
+            </button>
+          )}
+          {activeIndex < photos.length - 1 && (
+            <button
+              aria-label="Next photo"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              onClick={() => onNavigate(activeIndex + 1)}
+              type="button"
+            >
+              ›
+            </button>
+          )}
+          {photos.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+              {photos.length <= 20 ? (
+                <div className="flex gap-1.5">
+                  {photos.map((_, i) => (
+                    <button
+                      aria-label={`Go to photo ${i + 1}`}
+                      className={`rounded-full transition-all ${
+                        i === activeIndex
+                          ? "h-1.5 w-4 bg-white"
+                          : "size-1.5 bg-white/50 hover:bg-white/80"
+                      }`}
+                      key={i}
+                      onClick={() => onNavigate(i)}
+                      type="button"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <span className="rounded-full bg-black/40 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                  {activeIndex + 1} / {photos.length}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
