@@ -92,7 +92,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             </Link>
             <Link
               className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
-              href={`/e/${dashboard.event.publicId}`}
+              href={`/e/${dashboard.event.publicId}/slideshow`}
               target="_blank"
             >
               Open gallery →
