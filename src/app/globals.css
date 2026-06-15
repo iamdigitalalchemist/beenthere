@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme inline {
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+}
+
 :root {
   --canvas: #f5f7fa;
   --surface: #ffffff;

@@ -1046,20 +1046,17 @@ export function GalleryExperience({
   }, [pendingPhotos, photos]);
 
   return (
-    <main className="min-h-screen bg-canvas pb-28 text-ink">
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-canvas sm:bg-canvas/90 sm:backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-6">
+    <main className="min-h-screen bg-[#f8f9fb] pb-28 text-ink">
+      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-              BeenThere
-            </p>
-            <h1 className="truncate text-lg font-semibold tracking-tight sm:text-2xl">
+            <h1 className="truncate text-base font-bold tracking-tight sm:text-lg">
               {event.name}
             </h1>
           </div>
           <button
             aria-label={participant ? "Open guest profile" : "Join as a guest"}
-            className="flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-full border border-border bg-surface py-1.5 pl-1.5 pr-3 text-sm font-semibold shadow-sm transition hover:border-accent/30 active:scale-[0.98]"
+            className="flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-full border border-black/8 bg-white/80 backdrop-blur-sm py-1.5 pl-1.5 pr-3 text-sm font-semibold shadow-sm transition hover:border-accent/30 active:scale-[0.98]"
             onClick={() => {
               setIdentityError(null);
               setIdentityMode(participant ? "signup" : "code");
@@ -1082,13 +1079,13 @@ export function GalleryExperience({
         </div>
 
         <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-3 px-5 pb-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:space-y-0 sm:px-6">
-          <fieldset className="flex w-full rounded-full bg-surface p-1 shadow-sm ring-1 ring-border sm:w-auto">
+          <fieldset className="flex w-full rounded-full bg-black/5 p-1 sm:w-auto">
             <legend className="sr-only">Filter photos</legend>
             {FILTER_OPTIONS.map((option) => (
               <label
                 className={`tap-target flex flex-1 cursor-pointer justify-center rounded-full px-3 py-2.5 text-center text-sm font-semibold transition active:scale-[0.98] sm:flex-none sm:px-4 ${
                   filter === option.id
-                    ? "bg-ink text-surface"
+                    ? "bg-white text-ink shadow-sm"
                     : "text-ink-muted"
                 }`}
                 key={option.id}
@@ -1106,7 +1103,7 @@ export function GalleryExperience({
             ))}
           </fieldset>
           <input
-            className="min-h-11 w-full rounded-full border border-border bg-surface px-4 py-2.5 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:max-w-xs"
+            className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:max-w-xs"
             onChange={(inputEvent) => setSearch(inputEvent.target.value)}
             placeholder="Search by name"
             value={search}
@@ -1159,7 +1156,7 @@ export function GalleryExperience({
 
               return (
                 <article
-                  className="gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl border border-border/70 bg-surface shadow-sm"
+                  className="gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl bg-black/5 shadow-sm"
                   key={photo.id}
                   style={{
                     animationDelay: `${Math.min(index, 14) * 35}ms`,
@@ -1217,13 +1214,13 @@ export function GalleryExperience({
         )}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:bg-surface/95 sm:backdrop-blur-md sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/5 bg-white/80 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <p className="hidden text-sm text-ink-muted sm:block">
             {filteredPhotos.length} photo
             {filteredPhotos.length === 1 ? "" : "s"}
           </p>
-          <label className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-bold text-white shadow-soft transition hover:bg-accent-hover active:scale-[0.98]">
+          <label className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full bg-accent px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-accent-hover active:scale-[0.98]">
             Add photos
             <input
               accept="image/jpeg,image/png,image/heic,image/heif"

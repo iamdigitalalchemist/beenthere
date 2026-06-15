@@ -30,30 +30,37 @@ export default async function SignagePage({ params }: SignagePageProps) {
   const qrDataUrl = await createJoinQrDataUrl(joinUrl);
 
   return (
-    <main className="print-signage-root min-h-screen bg-canvas px-6 py-8 text-ink">
-      <section className="mx-auto flex max-w-3xl flex-col gap-6">
-        <div className="no-print flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            className="text-sm font-semibold text-accent"
-            href={`/dashboard/events/${dashboard.event.publicId}`}
-          >
-            Back to event dashboard
-          </Link>
-          <PrintSignageButton />
-        </div>
+    <div className="print-signage-root min-h-screen bg-[#f8f9fb] text-ink">
 
-        <article className="print-signage-card mx-auto w-full max-w-xl rounded-[2rem] bg-surface p-10 shadow-soft ring-1 ring-border">
-          <p className="text-center text-sm font-semibold uppercase tracking-[0.3em] text-accent">
-            BeenThere
-          </p>
-          <h1 className="mt-4 text-center text-3xl font-semibold tracking-tight sm:text-4xl">
+      {/* ── Nav ── */}
+      <header className="no-print border-b border-black/5 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
+          <Link href="/">
+            <Image alt="beenThere" height={28} src="/logo.webp" width={110} />
+          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              className="text-sm font-medium text-ink-muted transition hover:text-ink"
+              href={`/dashboard/events/${dashboard.event.publicId}`}
+            >
+              ← Back to dashboard
+            </Link>
+            <PrintSignageButton />
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-10">
+        <article className="print-signage-card w-full max-w-xl rounded-3xl bg-white p-10 shadow-sm ring-1 ring-black/5">
+          <Image alt="beenThere" className="mx-auto mb-2" height={24} src="/logo.webp" width={96} />
+          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight sm:text-4xl">
             {dashboard.event.name}
           </h1>
-          <p className="mt-3 text-center text-lg text-ink-muted">
+          <p className="mt-2 text-center text-base text-ink-muted">
             Scan to see everyone&apos;s photos
           </p>
 
-          <div className="mx-auto mt-8 w-fit rounded-3xl bg-surface p-4 ring-1 ring-border">
+          <div className="mx-auto mt-8 w-fit rounded-3xl bg-[#f8f9fb] p-5 ring-1 ring-black/5">
             <Image
               alt={`QR code to join ${dashboard.event.name}`}
               className="h-64 w-64"
@@ -65,24 +72,23 @@ export default async function SignagePage({ params }: SignagePageProps) {
             />
           </div>
 
-          <p className="mt-8 text-center text-base text-ink-muted">
-            Add yours without joining a group chat or downloading an app.
+          <p className="mt-8 text-center text-sm text-ink-muted">
+            Add your photos without a group chat or app download.
           </p>
           {dashboard.event.pinEnabled ? (
-            <p className="mt-4 text-center text-sm font-semibold text-accent">
+            <p className="mt-3 text-center text-xs font-semibold text-accent">
               A host PIN is required after scanning.
             </p>
           ) : null}
-          <p className="mt-6 break-all text-center font-mono text-xs text-ink-muted">
+          <p className="mt-4 break-all text-center font-mono text-xs text-ink-muted/60">
             {joinUrl}
           </p>
         </article>
 
         <p className="no-print text-center text-sm text-ink-muted">
-          Print this page and place it near the entrance, bar, or photo wall.
-          Guests scan {joinPath} to open the gallery instantly.
+          Print this page and place it near the entrance or photo wall. Guests scan to open the gallery instantly.
         </p>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }

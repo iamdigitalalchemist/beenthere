@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import { readJsonResponse } from "@/lib/read-json-response";
 import type { EventRecord } from "@/types/domain";
 
@@ -60,26 +61,30 @@ export function EventPinGate({ event }: EventPinGateProps) {
   }
 
   return (
-    <main className="min-h-screen bg-canvas px-6 py-16 text-ink">
-      <section className="mx-auto flex max-w-lg flex-col gap-8">
+    <main className="min-h-screen bg-[#0f1117] px-6 py-16">
+      <section className="mx-auto flex max-w-sm flex-col items-center">
+        <Image
+          src="/logo.webp"
+          width={100}
+          height={25}
+          alt="BeenThere"
+          className="brightness-0 invert mb-8"
+        />
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-accent">
-            BeenThere
-          </p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             {event.name}
           </h1>
-          <p className="mt-4 text-lg text-ink-muted">
+          <p className="mt-3 text-lg text-white/50">
             Enter the event PIN to open the gallery.
           </p>
         </div>
 
         <form
-          className="rounded-[2rem] bg-surface p-8 shadow-soft ring-1 ring-border"
+          className="mt-8 w-full rounded-3xl bg-white/8 p-7 backdrop-blur-xl ring-1 ring-white/10"
           onSubmit={handleSubmit}
         >
           <label
-            className="block text-sm font-semibold text-ink"
+            className="block text-xs font-semibold uppercase tracking-widest text-white/40"
             htmlFor="event-pin"
           >
             Event PIN
@@ -88,7 +93,7 @@ export function EventPinGate({ event }: EventPinGateProps) {
             autoCapitalize="off"
             autoComplete="one-time-code"
             autoCorrect="off"
-            className="mt-3 min-h-11 w-full rounded-2xl border border-border bg-canvas px-4 py-3 text-center text-2xl font-semibold tracking-[0.3em] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            className="mt-3 w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 text-center text-2xl font-bold tracking-[0.3em] text-white placeholder-white/20 outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             id="event-pin"
             inputMode="text"
             maxLength={12}
@@ -100,14 +105,14 @@ export function EventPinGate({ event }: EventPinGateProps) {
             value={pin}
           />
           {error ? (
-            <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>
+            <p className="mt-3 text-sm text-rose-400">{error}</p>
           ) : (
-            <p className="mt-3 text-sm text-ink-muted">
+            <p className="mt-3 text-xs text-white/30">
               Ask the host if you do not have the PIN yet.
             </p>
           )}
           <button
-            className="mt-6 min-h-11 w-full touch-manipulation rounded-full bg-ink px-6 py-3 text-sm font-bold text-surface transition hover:bg-ink/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-6 w-full rounded-full bg-accent py-3.5 text-sm font-bold text-white transition hover:bg-accent-hover active:scale-95 disabled:opacity-40"
             disabled={isSubmitting || pin.trim().length < 4}
             type="submit"
           >

@@ -59,7 +59,7 @@ export function CreateEventForm() {
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Event name</span>
         <input
-          className="rounded-2xl bg-canvas px-4 py-3 text-ink ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-accent"
+          className="rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           maxLength={80}
           minLength={3}
           onChange={(event) => setName(event.target.value)}
@@ -72,7 +72,7 @@ export function CreateEventForm() {
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Type of event</span>
         <select
-          className="rounded-2xl bg-canvas px-4 py-3 text-ink ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-accent"
+          className="rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           onChange={(event) => setTemplate(event.target.value as EventTemplate)}
           value={template}
         >
@@ -87,7 +87,7 @@ export function CreateEventForm() {
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Event date</span>
         <input
-          className="rounded-2xl bg-canvas px-4 py-3 text-ink ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-accent"
+          className="rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
           onChange={(event) => setStartsAt(event.target.value)}
           type="date"
           value={startsAt}
@@ -105,7 +105,7 @@ export function CreateEventForm() {
       ) : null}
 
       <button
-        className="rounded-full bg-ink px-6 py-3 text-sm font-bold text-surface transition hover:bg-ink/90 disabled:opacity-60"
+        className="rounded-full bg-ink px-6 py-3 text-sm font-bold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
         disabled={isSubmitting}
         type="submit"
       >

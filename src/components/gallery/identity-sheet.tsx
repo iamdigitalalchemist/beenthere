@@ -109,18 +109,18 @@ export function IdentitySheet({
     <div className="sheet-overlay fixed inset-0 z-40 isolate flex items-end justify-center sm:items-center sm:p-4">
       <button
         aria-label="Close guest details"
-        className="absolute inset-0 z-0 bg-ink/40 touch-manipulation"
+        className="absolute inset-0 z-0 bg-ink/50 backdrop-blur-sm touch-manipulation"
         onClick={onClose}
         type="button"
       />
       <form
-        className="sheet-panel relative z-10 max-h-[92vh] w-full max-w-md touch-manipulation overflow-y-auto rounded-t-[2rem] bg-surface px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl sm:rounded-[2rem] sm:p-6"
+        className="sheet-panel relative z-10 max-h-[92vh] w-full max-w-md touch-manipulation overflow-y-auto rounded-t-[2rem] bg-white/90 backdrop-blur-xl px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem] sm:p-6"
         onClick={(event) => event.stopPropagation()}
         onPointerDown={(event) => event.stopPropagation()}
         onSubmit={onSubmit}
       >
-        <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-border sm:hidden" />
-        <h2 className="text-xl font-semibold text-ink">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+        <h2 className="text-xl font-bold text-ink">
           {isSignUp
             ? showCodeLogin
               ? "Welcome back"
@@ -136,11 +136,11 @@ export function IdentitySheet({
         </p>
 
         {isSignUp ? (
-          <div className="mt-5 flex rounded-full bg-canvas p-1 ring-1 ring-border">
+          <div className="mt-5 flex rounded-full bg-black/5 p-1">
             <button
               className={`min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
                 identityMode === "signup"
-                  ? "bg-surface text-ink shadow-sm"
+                  ? "bg-white text-ink shadow-sm"
                   : "text-ink-muted"
               }`}
               onClick={() => onIdentityModeChange("signup")}
@@ -151,7 +151,7 @@ export function IdentitySheet({
             <button
               className={`min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
                 identityMode === "code"
-                  ? "bg-surface text-ink shadow-sm"
+                  ? "bg-white text-ink shadow-sm"
                   : "text-ink-muted"
               }`}
               onClick={() => onIdentityModeChange("code")}
@@ -176,7 +176,7 @@ export function IdentitySheet({
                 autoCapitalize="characters"
                 autoComplete="off"
                 autoCorrect="off"
-                className="mt-2 min-h-11 w-full rounded-2xl border border-border bg-canvas px-4 py-3 text-center font-mono text-2xl font-semibold tracking-[0.35em] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-center font-mono text-2xl font-semibold tracking-[0.35em] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                 id="guest-code"
                 inputMode="text"
                 maxLength={7}
@@ -192,7 +192,7 @@ export function IdentitySheet({
               />
             </label>
             <button
-              className="min-h-11 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-surface transition hover:bg-ink/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               disabled={!canResumeWithCode || isResuming}
               onClick={onResume}
               type="button"
@@ -274,7 +274,7 @@ export function IdentitySheet({
                   will stop working.
                 </p>
                 <button
-                  className="mt-3 min-h-11 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-surface transition hover:bg-ink/90 active:scale-[0.98] disabled:opacity-50"
+                  className="mt-3 min-h-11 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-[0.98] disabled:opacity-40"
                   disabled={isRegeneratingCode}
                   onClick={onRegenerateRecoveryCode}
                   type="button"
@@ -328,7 +328,7 @@ export function IdentitySheet({
             >
               Display name
               <input
-                className="mt-2 min-h-11 w-full rounded-2xl border border-border bg-canvas px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                 id="display-name"
                 onChange={(event) => onDisplayNameChange(event.target.value)}
                 placeholder="Aunt Lisa, Tom, Amira..."
@@ -351,7 +351,7 @@ export function IdentitySheet({
                   >
                     {field.label}
                     <input
-                      className="mt-2 min-h-11 w-full rounded-2xl border border-border bg-canvas px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                      className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                       onChange={(event) =>
                         onSocialHandleChange(field.key, event.target.value)
                       }
@@ -364,7 +364,7 @@ export function IdentitySheet({
             </fieldset>
 
             {isSignUp ? (
-              <label className="mt-6 flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-border/80 bg-canvas px-3 py-3 text-sm leading-relaxed text-ink-muted">
+              <label className="mt-6 flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-black/8 bg-black/5 px-3 py-3 text-sm leading-relaxed text-ink-muted">
                 <input
                   checked={consentAccepted}
                   className="mt-0.5 size-5 shrink-0 accent-accent"
@@ -394,7 +394,7 @@ export function IdentitySheet({
               ) : null}
               {hasParticipant ? (
                 <button
-                  className="min-h-11 w-full rounded-full border border-border px-5 py-3 text-sm font-semibold text-ink-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 active:scale-[0.98]"
+                  className="min-h-11 w-full rounded-full border border-black/10 bg-black/5 px-5 py-3 text-sm font-semibold text-ink-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 active:scale-[0.98]"
                   onClick={onLogOut}
                   type="button"
                 >

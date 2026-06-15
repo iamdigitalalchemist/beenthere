@@ -43,22 +43,21 @@ export function ActivateEventBanner({ eventPublicId }: ActivateEventBannerProps)
   }
 
   return (
-    <section className="rounded-3xl bg-amber-50 p-5 ring-1 ring-amber-200">
+    <section className="rounded-3xl bg-amber-50/80 p-5 ring-1 ring-amber-200/60 backdrop-blur-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-semibold text-amber-900">
             This event is a draft — guests can&apos;t join yet.
           </p>
-          <p className="mt-1 text-sm text-amber-800">
-            Take it live to unlock the join QR, uploads, and the guest
-            gallery.
+          <p className="mt-1 text-sm text-amber-700">
+            Take it live to unlock the join QR, uploads, and the guest gallery.
           </p>
           {error ? (
-            <p className="mt-2 text-sm font-medium text-red-700">{error}</p>
+            <p className="mt-2 text-sm font-medium text-red-600">{error}</p>
           ) : null}
         </div>
         <button
-          className="rounded-full bg-ink px-6 py-3 text-sm font-bold text-surface transition hover:bg-ink/90 disabled:opacity-60"
+          className="shrink-0 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
           disabled={isActivating}
           onClick={() => void activate()}
           type="button"
