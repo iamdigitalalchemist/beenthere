@@ -12,6 +12,8 @@ import { sha256Hex } from "@/server/crypto";
 import { normalizeEventPin } from "@/server/pin-policy";
 import { getDatabasePool } from "@/server/db";
 import { getEventPhotoReports } from "@/server/photo-reports";
+import { getSmartAlbums } from "@/server/smart-albums";
+import { getCustomAlbums } from "@/server/custom-albums";
 import { createSignedPhotoReadUrl } from "@/server/r2";
 import type {
   EventParticipant,
@@ -37,6 +39,7 @@ type EventRow = {
   language: "en" | "de";
   welcome_message: string;
   pin_hash: string | null;
+  collect_socials: boolean;
   storage_limit_bytes: number;
   storage_used_bytes: number;
 };
@@ -87,6 +90,7 @@ function mapEventRow(row: EventRow): EventRecord {
     language: row.language,
     welcomeMessage: row.welcome_message,
     pinEnabled: Boolean(row.pin_hash),
+    collectSocials: Boolean(row.collect_socials),
     storageLimitBytes: toNumber(row.storage_limit_bytes),
     storageUsedBytes: toNumber(row.storage_used_bytes),
   };
@@ -299,7 +303,7 @@ export async function getEventByJoinToken(token: string) {
   const { rows } = await pool.query<EventRow>(
     `select id, public_id, owner_user_id, join_token, name, template, status,
             plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, storage_limit_bytes,
+            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
             storage_used_bytes
        from beenthere.events
       where join_token_hash = $1
@@ -331,7 +335,7 @@ export async function getEventGallery(publicId: string) {
   const eventResult = await pool.query<EventRow>(
     `select id, public_id, owner_user_id, join_token, name, template, status,
             plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, storage_limit_bytes,
+            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
             storage_used_bytes
        from beenthere.events
       where public_id = $1
@@ -435,8 +439,14 @@ export async function getDashboardEvent(publicId: string) {
   }
 
   if (!pool) {
+    const [albums, customAlbums] = await Promise.all([
+      getSmartAlbums(gallery.event.id),
+      getCustomAlbums(gallery.event.id),
+    ]);
     return {
       ...gallery,
+      albums,
+      customAlbums,
       reports: {},
       stats: {
         totalPhotos: gallery.photos.length,
@@ -458,7 +468,7 @@ export async function getDashboardEvent(publicId: string) {
     };
   }
 
-  const [{ rows }, reports] = await Promise.all([
+  const [{ rows }, reports, albums, customAlbums] = await Promise.all([
     pool.query<{
       total_photos: string | number;
       visible_photos: string | number;
@@ -480,11 +490,15 @@ export async function getDashboardEvent(publicId: string) {
       [gallery.event.id],
     ),
     getEventPhotoReports(gallery.event.id),
+    getSmartAlbums(gallery.event.id),
+    getCustomAlbums(gallery.event.id),
   ]);
   const stats = rows[0];
 
   return {
     ...gallery,
+    albums,
+    customAlbums,
     reports,
     stats: {
       totalPhotos: toNumber(stats.total_photos),
@@ -544,7 +558,7 @@ export async function setPhotoVisibility(input: {
 
 const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
   template, status, plan, starts_at, ends_at, upload_closes_at,
-  gallery_expires_at, language, welcome_message, pin_hash,
+  gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
   storage_limit_bytes, storage_used_bytes`;
 
 const DEFAULT_EVENT_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;

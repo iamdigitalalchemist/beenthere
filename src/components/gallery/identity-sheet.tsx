@@ -31,6 +31,7 @@ type IdentitySheetProps = {
   selectedResumeId?: string;
   showNamePicker: boolean;
   socialHandles: GuestSocialHandles;
+  collectSocials?: boolean;
   onClose: () => void;
   onConsentChange: (accepted: boolean) => void;
   onDisplayNameChange: (name: string) => void;
@@ -75,6 +76,7 @@ export function IdentitySheet({
   selectedResumeId,
   showNamePicker,
   socialHandles,
+  collectSocials = false,
   onClose,
   onConsentChange,
   onDisplayNameChange,
@@ -336,32 +338,34 @@ export function IdentitySheet({
               />
             </label>
 
-            <fieldset className="mt-6">
-              <legend className="text-sm font-semibold text-ink">
-                Social accounts
-              </legend>
-              <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                Optional. Saved for future sharing and auto-tagging features.
-              </p>
-              <div className="mt-4 space-y-3">
-                {SOCIAL_FIELDS.map((field) => (
-                  <label
-                    className="block text-sm text-ink-muted"
-                    key={field.key}
-                  >
-                    {field.label}
-                    <input
-                      className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                      onChange={(event) =>
-                        onSocialHandleChange(field.key, event.target.value)
-                      }
-                      placeholder={field.placeholder}
-                      value={socialHandles[field.key] ?? ""}
-                    />
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            {collectSocials && (
+              <fieldset className="mt-6">
+                <legend className="text-sm font-semibold text-ink">
+                  Social accounts
+                </legend>
+                <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+                  Optional. Saved for future sharing and auto-tagging features.
+                </p>
+                <div className="mt-4 space-y-3">
+                  {SOCIAL_FIELDS.map((field) => (
+                    <label
+                      className="block text-sm text-ink-muted"
+                      key={field.key}
+                    >
+                      {field.label}
+                      <input
+                        className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+                        onChange={(event) =>
+                          onSocialHandleChange(field.key, event.target.value)
+                        }
+                        placeholder={field.placeholder}
+                        value={socialHandles[field.key] ?? ""}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             {isSignUp ? (
               <label className="mt-6 flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-black/8 bg-black/5 px-3 py-3 text-sm leading-relaxed text-ink-muted">

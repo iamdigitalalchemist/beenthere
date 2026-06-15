@@ -10,6 +10,7 @@ import {
 } from "react";
 import { HeartIcon } from "@/components/gallery/heart-icon";
 import { GuestRecoveryReveal } from "@/components/gallery/guest-recovery-reveal";
+import { ViewSizeToggle, type ViewSize } from "@/components/view-size-toggle";
 import {
   IdentitySheet,
   type GuestResumeCandidate,
@@ -118,32 +119,33 @@ const FILTER_OPTIONS: Array<{ id: Filter; label: string }> = [
 ];
 
 const GALLERY_ROW_HEIGHT_PX = 8;
-const GALLERY_GAP_MOBILE_PX = 12;
-const GALLERY_GAP_DESKTOP_PX = 16;
 
-function getGalleryColumnCount(containerWidth: number) {
-  if (containerWidth >= 1024) {
-    return 4;
-  }
-  if (containerWidth >= 640) {
-    return 3;
-  }
-  return 2;
+const GALLERY_CONFIG: Record<ViewSize, { gapMobile: number; gapDesktop: number; colsMobile: number; colsTablet: number; colsDesktop: number; squareCrop: boolean }> = {
+  compact:  { gapMobile: 4,  gapDesktop: 6,  colsMobile: 3, colsTablet: 4, colsDesktop: 5, squareCrop: true  },
+  medium:   { gapMobile: 12, gapDesktop: 16, colsMobile: 2, colsTablet: 3, colsDesktop: 4, squareCrop: false },
+  large:    { gapMobile: 8,  gapDesktop: 12, colsMobile: 1, colsTablet: 2, colsDesktop: 2, squareCrop: false },
+};
+
+function getGalleryColumnCount(containerWidth: number, size: ViewSize) {
+  const cfg = GALLERY_CONFIG[size];
+  if (containerWidth >= 1024) return cfg.colsDesktop;
+  if (containerWidth >= 640)  return cfg.colsTablet;
+  return cfg.colsMobile;
 }
 
-function getGalleryGap(containerWidth: number) {
-  return containerWidth >= 640
-    ? GALLERY_GAP_DESKTOP_PX
-    : GALLERY_GAP_MOBILE_PX;
+function getGalleryGap(containerWidth: number, size: ViewSize) {
+  const cfg = GALLERY_CONFIG[size];
+  return containerWidth >= 640 ? cfg.gapDesktop : cfg.gapMobile;
 }
 
-function getGalleryRowSpan(photo: PhotoRecord, containerWidth: number) {
-  if (containerWidth <= 0) {
-    return 12;
-  }
+function getGalleryRowSpan(photo: PhotoRecord, containerWidth: number, size: ViewSize) {
+  if (containerWidth <= 0) return 12;
 
-  const columns = getGalleryColumnCount(containerWidth);
-  const gap = getGalleryGap(containerWidth);
+  const cfg = GALLERY_CONFIG[size];
+  if (cfg.squareCrop) return 12; // fixed square height — 12 row-units ≈ square
+
+  const columns = getGalleryColumnCount(containerWidth, size);
+  const gap = getGalleryGap(containerWidth, size);
   const columnWidth = (containerWidth - gap * (columns - 1)) / columns;
   const aspectRatio = Math.max(photo.height, 1) / Math.max(photo.width, 1);
   const imageHeight = columnWidth * aspectRatio;
@@ -217,6 +219,7 @@ export function GalleryExperience({
   const [search, setSearch] = useState("");
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [viewSize, setViewSize] = useState<ViewSize>("medium");
   const photoIdsRef = useRef(new Set(initialPhotos.map((photo) => photo.id)));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const masonryRef = useRef<HTMLDivElement>(null);
@@ -230,6 +233,18 @@ export function GalleryExperience({
       document.body.style.overflow = "";
     };
   }, []);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("bt:gallery-view-size") as ViewSize | null;
+    if (stored === "compact" || stored === "medium" || stored === "large") {
+      setViewSize(stored);
+    }
+  }, []);
+
+  function changeViewSize(size: ViewSize) {
+    setViewSize(size);
+    window.localStorage.setItem("bt:gallery-view-size", size);
+  }
 
   useEffect(() => {
     const storedParticipant = getStoredParticipant(event.id);
@@ -1079,29 +1094,32 @@ export function GalleryExperience({
         </div>
 
         <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-3 px-5 pb-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:space-y-0 sm:px-6">
-          <fieldset className="flex w-full rounded-full bg-black/5 p-1 sm:w-auto">
-            <legend className="sr-only">Filter photos</legend>
-            {FILTER_OPTIONS.map((option) => (
-              <label
-                className={`tap-target flex flex-1 cursor-pointer justify-center rounded-full px-3 py-2.5 text-center text-sm font-semibold transition active:scale-[0.98] sm:flex-none sm:px-4 ${
-                  filter === option.id
-                    ? "bg-white text-ink shadow-sm"
-                    : "text-ink-muted"
-                }`}
-                key={option.id}
-              >
-                <input
-                  checked={filter === option.id}
-                  className="sr-only"
-                  name="gallery-filter"
-                  onChange={() => setFilter(option.id)}
-                  type="radio"
-                  value={option.id}
-                />
-                {option.label}
-              </label>
-            ))}
-          </fieldset>
+          <div className="flex items-center gap-2">
+            <fieldset className="flex rounded-full bg-black/5 p-1">
+              <legend className="sr-only">Filter photos</legend>
+              {FILTER_OPTIONS.map((option) => (
+                <label
+                  className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
+                    filter === option.id
+                      ? "bg-white text-ink shadow-sm"
+                      : "text-ink-muted"
+                  }`}
+                  key={option.id}
+                >
+                  <input
+                    checked={filter === option.id}
+                    className="sr-only"
+                    name="gallery-filter"
+                    onChange={() => setFilter(option.id)}
+                    type="radio"
+                    value={option.id}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </fieldset>
+            <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+          </div>
           <input
             className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:max-w-xs"
             onChange={(inputEvent) => setSearch(inputEvent.target.value)}
@@ -1148,11 +1166,16 @@ export function GalleryExperience({
           <div
             className="gallery-masonry relative mt-4 sm:mt-5"
             ref={masonryRef}
+            style={{
+              gap: `${getGalleryGap(masonryWidth, viewSize)}px`,
+              gridTemplateColumns: `repeat(${getGalleryColumnCount(masonryWidth, viewSize)}, 1fr)`,
+            }}
           >
             {filteredPhotos.map((photo, index) => {
               const uploaderName = getUploaderName(photo);
               const isProcessing = photo.status !== "ready";
               const isSaved = savedPhotoIds.has(photo.id);
+              const squareCrop = GALLERY_CONFIG[viewSize].squareCrop;
 
               return (
                 <article
@@ -1160,11 +1183,11 @@ export function GalleryExperience({
                   key={photo.id}
                   style={{
                     animationDelay: `${Math.min(index, 14) * 35}ms`,
-                    gridRowEnd: `span ${getGalleryRowSpan(photo, masonryWidth)}`,
+                    gridRowEnd: `span ${getGalleryRowSpan(photo, masonryWidth, viewSize)}`,
                   }}
                 >
                   <button
-                    className="tap-target absolute inset-0 block touch-manipulation"
+                    className={`tap-target block touch-manipulation ${squareCrop ? "aspect-square w-full" : "absolute inset-0"}`}
                     onClick={() => openLightbox(index)}
                     type="button"
                   >
@@ -1236,6 +1259,7 @@ export function GalleryExperience({
 
       {showIdentityForm ? (
         <IdentitySheet
+          collectSocials={event.collectSocials}
           consentAccepted={consentAccepted}
           displayName={displayName}
           errorMessage={identityError}

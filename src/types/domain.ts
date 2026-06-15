@@ -46,6 +46,7 @@ export type EventRecord = {
   language: "en" | "de";
   welcomeMessage: string;
   pinEnabled: boolean;
+  collectSocials: boolean;
   storageLimitBytes: number;
   storageUsedBytes: number;
 };
@@ -92,6 +93,26 @@ export type PhotoRecord = {
   height: number;
   uploadedAt: string;
   takenAt?: string;
+};
+
+export type SmartAlbumType = "by_uploader" | "by_date" | "by_tag";
+
+export type SmartAlbum = {
+  id: string;
+  type: SmartAlbumType;
+  label: string;
+  photoCount: number;
+  coverThumbnailUrl: string;
+  filterKey: string;
+  filterValue: string;
+};
+
+export type CustomAlbum = {
+  id: string;
+  name: string;
+  photoCount: number;
+  coverThumbnailUrl: string;
+  createdAt: string;
 };
 
 export type UploadReservationRequest = {
