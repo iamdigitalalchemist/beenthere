@@ -68,6 +68,13 @@ export async function createSignedPhotoReadUrl(objectKey: string) {
     return createLocalMediaUrl(objectKey);
   }
 
+  // When a public CDN URL is configured (R2 public bucket or custom domain),
+  // skip signing entirely — Cloudflare serves and caches the file directly.
+  const publicBase = process.env.R2_PUBLIC_URL;
+  if (publicBase) {
+    return `${publicBase.replace(/\/$/, "")}/${objectKey}`;
+  }
+
   const cached = signedUrlCache.get(objectKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.url;
