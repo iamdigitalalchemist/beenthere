@@ -118,6 +118,17 @@ export async function setAlbumPhoto(
   }
 }
 
+export async function addAlbumPhotos(albumId: string, photoIds: string[]): Promise<void> {
+  const pool = getDatabasePool();
+  if (!pool || photoIds.length === 0) return;
+
+  const values = photoIds.map((_, i) => `($1, $${i + 2})`).join(", ");
+  await pool.query(
+    `insert into beenthere.album_photos (album_id, photo_id) values ${values} on conflict do nothing`,
+    [albumId, ...photoIds],
+  );
+}
+
 export async function getAlbumEventId(albumId: string): Promise<string | null> {
   const pool = getDatabasePool();
   if (!pool) return null;

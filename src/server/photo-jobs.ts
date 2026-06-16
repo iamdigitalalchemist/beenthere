@@ -7,6 +7,7 @@ import {
   putR2Object,
 } from "@/server/r2";
 import { createPhotoDerivativeKeys } from "@/server/storage-paths";
+import { logger } from "@/server/logger";
 import type { PhotoRecord } from "@/types/domain";
 
 type PhotoJobRow = {
@@ -29,6 +30,7 @@ function toNumber(value: string | number) {
 
 export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord> {
   const pool = getDatabasePool();
+  const t0 = Date.now();
 
   if (!pool) {
     throw new Error("POSTGRES_URL is not configured.");
@@ -45,8 +47,11 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
   const photoRow = photoResult.rows[0];
 
   if (!photoRow) {
+    logger.error("photo_processing_not_found", { photo_id: photoId });
     throw new Error("Photo not found.");
   }
+
+  logger.info("photo_processing_start", { photo_id: photoId, event_id: photoRow.event_id });
 
   await pool.query(
     `update beenthere.photos set status = 'processing' where id = $1`,
@@ -116,6 +121,14 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
     createSignedPhotoReadUrl(thumbnailKey),
     createSignedPhotoReadUrl(previewKey),
   ]);
+
+  logger.info("photo_processing_complete", {
+    photo_id: photoId,
+    event_id: updatedPhoto.event_id,
+    width: updatedPhoto.width,
+    height: updatedPhoto.height,
+    duration_ms: Date.now() - t0,
+  });
 
   return {
     id: updatedPhoto.id,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getEventManagerForApi } from "@/server/auth";
 import { getEventByPublicId } from "@/server/data";
 import {
+  addAlbumPhotos,
   getAlbumEventId,
   getAlbumPhotoIds,
   setAlbumPhoto,
@@ -38,9 +39,14 @@ export async function POST(request: Request, { params }: RouteProps) {
   const auth = await resolveAndAuth(eventId, albumId);
   if (!("ok" in auth)) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const body = (await request.json()) as Partial<{ photoId: string; add: boolean }>;
-  if (!body.photoId) return NextResponse.json({ error: "photoId is required." }, { status: 400 });
+  const body = (await request.json()) as Partial<{ photoId: string; photoIds: string[]; add: boolean }>;
 
+  if (Array.isArray(body.photoIds)) {
+    await addAlbumPhotos(albumId, body.photoIds);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!body.photoId) return NextResponse.json({ error: "photoId or photoIds is required." }, { status: 400 });
   await setAlbumPhoto(albumId, body.photoId, body.add !== false);
   return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,7 @@ import { createLocalMediaKey } from "@/server/local-media";
 import { createSignedPhotoUploadUrl } from "@/server/r2";
 import { createOriginalPhotoKey } from "@/server/storage-paths";
 import { validateUploadBatch } from "@/server/upload-policy";
+import { logger } from "@/server/logger";
 import type {
   UploadReservation,
   UploadReservationRequest,
@@ -181,6 +182,11 @@ export async function POST(request: Request) {
     await client.query("commit");
   } catch (error) {
     await client.query("rollback");
+    logger.error("upload_reservation_failed", {
+      event_id: body.eventId,
+      participant_id: body.participantId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Reservation failed." },
       { status: 500 },
@@ -188,6 +194,13 @@ export async function POST(request: Request) {
   } finally {
     client.release();
   }
+
+  logger.info("upload_reserved", {
+    event_id: body.eventId,
+    participant_id: body.participantId,
+    accepted_count: reservations.length,
+    skipped_count: skippedFiles.length,
+  });
 
   return NextResponse.json({
     reservations,

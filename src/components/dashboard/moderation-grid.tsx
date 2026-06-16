@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PhotoSharePanel } from "@/components/dashboard/photo-share-panel";
 import { PhotoDetailView } from "@/components/gallery/photo-detail-view";
 import { ViewSizeToggle, type ViewSize } from "@/components/view-size-toggle";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import type {
   CustomAlbum,
   PhotoRecord,
@@ -15,13 +16,73 @@ type ModerationGridProps = {
   initialPhotos: PhotoRecord[];
   uploaderNames: Record<string, string>;
   reports?: Record<string, PhotoReportSummary>;
-  // Optional: pass these to enable "Add to album" per photo
   customAlbums?: CustomAlbum[];
   eventPublicId?: string;
+  eventId?: string;
 };
 
 type VisibilityFilter = "all" | "visible" | "hidden" | "reported" | "processing";
 type ModerationAction = Extract<PhotoVisibility, "visible" | "hidden" | "deleted">;
+
+// ─── Icons ───────────────────────────────────────────────────────────────────
+
+function IconEyeOff() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+      <line x1="1" x2="23" y1="1" y2="23"/>
+    </svg>
+  );
+}
+
+function IconEye() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+      <path d="M10 11v6M14 11v6"/>
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+    </svg>
+  );
+}
+
+function IconFolderPlus() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      <line x1="12" x2="12" y1="11" y2="17"/>
+      <line x1="9" x2="15" y1="14" y2="14"/>
+    </svg>
+  );
+}
+
+function IconShare() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+      <polyline points="16 6 12 2 8 6"/>
+      <line x1="12" x2="12" y1="2" y2="15"/>
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="16">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
 
 const badgeStyles: Record<string, string> = {
   visible: "bg-emerald-100 text-emerald-800",
@@ -181,16 +242,136 @@ function AddToAlbumSheet({
   );
 }
 
+// ─── Bulk add-to-album sheet ─────────────────────────────────────────────────
+
+function BulkAddToAlbumSheet({
+  photoIds,
+  eventPublicId,
+  customAlbums,
+  onClose,
+}: {
+  photoIds: string[];
+  eventPublicId: string;
+  customAlbums: CustomAlbum[];
+  onClose: () => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [done, setDone] = useState<Set<string>>(new Set());
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [albums, setAlbums] = useState(customAlbums);
+
+  async function addAll(albumId: string) {
+    setSaving(albumId);
+    await fetch(`/api/events/${eventPublicId}/albums/${albumId}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoIds }),
+    });
+    setSaving(null);
+    setDone((prev) => new Set([...prev, albumId]));
+  }
+
+  async function createAndAdd() {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    setSaving("__new__");
+    const res = await fetch(`/api/events/${eventPublicId}/albums`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    if (!res.ok) { setSaving(null); return; }
+    const data = (await res.json()) as { id: string; name: string };
+    await fetch(`/api/events/${eventPublicId}/albums/${data.id}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoIds }),
+    });
+    setSaving(null);
+    setAlbums((prev) => [{ id: data.id, name: data.name, photoCount: photoIds.length, coverThumbnailUrl: "", createdAt: new Date().toISOString() }, ...prev]);
+    setDone((prev) => new Set([...prev, data.id]));
+    setNewName("");
+    setCreating(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="w-full max-w-sm rounded-t-[2rem] bg-white px-5 pb-8 pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem]">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-ink">Add to album</h2>
+            <p className="text-xs text-ink-muted">{photoIds.length} photos</p>
+          </div>
+          <button className="rounded-full p-2 text-ink-muted transition hover:bg-black/5 hover:text-ink" onClick={onClose} type="button">✕</button>
+        </div>
+        {albums.length === 0 && !creating ? (
+          <p className="mb-4 text-sm text-ink-muted">No albums yet. Create one below.</p>
+        ) : (
+          <ul className="mb-3 max-h-56 space-y-1.5 overflow-y-auto">
+            {albums.map((album) => {
+              const isDone = done.has(album.id);
+              return (
+                <li key={album.id}>
+                  <button
+                    className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${isDone ? "bg-accent/10 ring-1 ring-accent/30" : "bg-black/5 hover:bg-black/8"}`}
+                    disabled={saving === album.id || isDone}
+                    onClick={() => void addAll(album.id)}
+                    type="button"
+                  >
+                    <span className="text-lg">{isDone ? "✅" : "📁"}</span>
+                    <span className="flex-1 truncate text-sm font-semibold text-ink">{album.name}</span>
+                    {saving === album.id && <span className="text-xs text-ink-muted">Adding…</span>}
+                    {isDone && <span className="text-xs font-semibold text-accent">Added</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {creating ? (
+          <div className="space-y-2">
+            <input
+              autoFocus
+              className="w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void createAndAdd(); if (e.key === "Escape") setCreating(false); }}
+              placeholder="Album name…"
+              value={newName}
+            />
+            <div className="flex gap-2">
+              <button className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50" disabled={!newName.trim() || saving === "__new__"} onClick={() => void createAndAdd()} type="button">
+                {saving === "__new__" ? "Creating…" : "Create & add all"}
+              </button>
+              <button className="rounded-full border border-black/10 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95" onClick={() => setCreating(false)} type="button">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <button className="mt-1 w-full rounded-full border border-dashed border-black/20 py-2.5 text-sm font-semibold text-ink-muted transition hover:border-accent/40 hover:text-accent active:scale-[0.98]" onClick={() => setCreating(true)} type="button">+ New album</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main grid ───────────────────────────────────────────────────────────────
+
+type PhotosApiResponse = {
+  photos: PhotoRecord[];
+  uploaderNames: Record<string, string>;
+};
 
 export function ModerationGrid({
   initialPhotos,
-  uploaderNames,
+  uploaderNames: initialUploaderNames,
   reports = {},
   customAlbums,
   eventPublicId,
+  eventId,
 }: ModerationGridProps) {
   const [photos, setPhotos] = useState(initialPhotos);
+  const [uploaderNames, setUploaderNames] = useState(initialUploaderNames);
   const [photoReports, setPhotoReports] = useState(reports);
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>("all");
   const [uploaderFilter, setUploaderFilter] = useState<string>("all");
@@ -201,6 +382,43 @@ export function ModerationGrid({
   const [addToAlbumPhotoId, setAddToAlbumPhotoId] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [viewSize, setViewSize] = useState<ViewSize>("medium");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
+  const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!eventId) return;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const channel = supabase
+      .channel(`dashboard-photos:${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "beenthere", table: "photos", filter: `event_id=eq.${eventId}` },
+        async () => {
+          const res = await fetch(`/api/events/${eventId}/photos`);
+          if (!res.ok) return;
+          const body = (await res.json()) as PhotosApiResponse;
+          setPhotos((current) => {
+            const currentMap = new Map(current.map((p) => [p.id, p]));
+            return body.photos.map((p) => {
+              const existing = currentMap.get(p.id);
+              if (!existing) return p;
+              return {
+                ...p,
+                thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+                previewUrl: p.previewUrl || existing.previewUrl,
+              };
+            });
+          });
+          setUploaderNames(body.uploaderNames);
+        },
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [eventId]);
 
   useEffect(() => {
     try {
@@ -291,6 +509,47 @@ export function ModerationGrid({
     );
   }
 
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === filteredPhotos.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredPhotos.map((p) => p.id)));
+    }
+  }
+
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }
+
+  async function bulkUpdateVisibility(visibility: ModerationAction) {
+    if (!selectedIds.size) return;
+    setBulkWorking(true);
+    const ids = Array.from(selectedIds);
+    await Promise.all(ids.map((id) =>
+      fetch(`/api/photos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visibility }),
+      }),
+    ));
+    setPhotos((current) =>
+      visibility === "deleted"
+        ? current.filter((p) => !selectedIds.has(p.id))
+        : current.map((p) => selectedIds.has(p.id) ? { ...p, visibility } : p),
+    );
+    setBulkWorking(false);
+    exitSelectMode();
+  }
+
   function clearFilters() {
     setUploaderFilter("all");
     setDateFilter("all");
@@ -352,15 +611,49 @@ export function ModerationGrid({
 
         {/* Visibility pills + size toggle row */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-muted">
-            {message}
-            {activeFilterCount > 0 && (
-              <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
-                {filteredPhotos.length} shown
-              </span>
+          <div className="flex items-center gap-3">
+            {selectMode ? (
+              <>
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
+                  <input
+                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                    className="size-4 accent-accent"
+                    onChange={toggleSelectAll}
+                    type="checkbox"
+                  />
+                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                </label>
+                <button
+                  className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+                  onClick={exitSelectMode}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <p className="text-sm text-ink-muted">
+                {message}
+                {activeFilterCount > 0 && (
+                  <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
+                    {filteredPhotos.length} shown
+                  </span>
+                )}
+              </p>
             )}
-          </p>
+          </div>
           <div className="flex items-center gap-2">
+          <button
+            className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
+              selectMode
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-black/10 bg-white text-ink hover:bg-black/5"
+            }`}
+            onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+            type="button"
+          >
+            Select
+          </button>
           <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
           <div className="flex gap-1 rounded-2xl bg-black/5 p-1 sm:w-fit">
             {(["all", "visible", "hidden", "reported", "processing"] as VisibilityFilter[]).map((f) => (
@@ -398,32 +691,129 @@ export function ModerationGrid({
           const report = photoReports[photo.id];
           const isReported = photo.visibility === "reported";
 
+          const isSelected = selectedIds.has(photo.id);
+
           return (
             <article
-              className={`overflow-hidden bg-white shadow-sm ring-1 transition ${
-                isReported ? "ring-red-200" : "ring-black/5"
+              className={`overflow-hidden bg-white shadow-sm ring-2 transition ${
+                isSelected
+                  ? "ring-accent"
+                  : isReported
+                    ? "ring-red-200"
+                    : "ring-black/5"
               } ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
               key={photo.id}
             >
-              <button
-                className="block w-full cursor-zoom-in"
-                onClick={() => setLightboxIndex(filteredPhotos.indexOf(photo))}
-                title="View photo"
-                type="button"
-              >
-                <div className={`bg-black/5 ${viewSize === "compact" ? "aspect-square" : "aspect-[4/3]"}`}>
-                  {photo.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      alt={`Uploaded by ${uploaderName}`}
-                      className="h-full w-full object-cover transition hover:opacity-90"
-                      src={photo.thumbnailUrl}
-                    />
-                  ) : (
-                    <div className="grid h-full place-items-center text-xs text-ink-muted">Processing…</div>
-                  )}
-                </div>
-              </button>
+              <div className="relative">
+                {selectMode && (
+                  <button
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => toggleSelect(photo.id)}
+                    type="button"
+                  />
+                )}
+                {selectMode && (
+                  <div className={`pointer-events-none absolute left-2 top-2 z-20 flex size-6 items-center justify-center rounded-full border-2 transition ${isSelected ? "border-accent bg-accent" : "border-white/80 bg-black/30"}`}>
+                    {isSelected && (
+                      <svg fill="none" height="12" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="12">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                )}
+                <button
+                  className="block w-full cursor-zoom-in"
+                  onClick={() => !selectMode && setLightboxIndex(filteredPhotos.indexOf(photo))}
+                  title="View photo"
+                  type="button"
+                >
+                  <div className={`bg-black/5 ${viewSize === "compact" ? "aspect-square" : "aspect-[4/3]"}`}>
+                    {photo.thumbnailUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        alt={`Uploaded by ${uploaderName}`}
+                        className="h-full w-full object-cover transition hover:opacity-90"
+                        src={photo.thumbnailUrl}
+                      />
+                    ) : (
+                      <div className="grid h-full place-items-center text-xs text-ink-muted">Processing…</div>
+                    )}
+                  </div>
+                </button>
+
+                {viewSize === "compact" && (
+                  <div className="absolute bottom-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 [article:hover_&]:opacity-100">
+                    {confirmingDeleteId === photo.id ? (
+                      <>
+                        <button
+                          className="grid size-7 place-items-center rounded-full bg-red-500 text-white shadow transition hover:bg-red-600 active:scale-95"
+                          onClick={() => void updateVisibility(photo.id, "deleted")}
+                          title="Confirm delete"
+                          type="button"
+                        >
+                          <IconTrash />
+                        </button>
+                        <button
+                          className="grid size-7 place-items-center rounded-full bg-white/90 text-ink shadow backdrop-blur-sm transition hover:bg-white active:scale-95"
+                          onClick={() => setConfirmingDeleteId(null)}
+                          title="Cancel"
+                          type="button"
+                        >
+                          ✕
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {photo.visibility === "visible" ? (
+                          <button
+                            className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                            onClick={() => void updateVisibility(photo.id, "hidden")}
+                            title="Hide"
+                            type="button"
+                          >
+                            <IconEyeOff />
+                          </button>
+                        ) : (
+                          <button
+                            className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                            onClick={() => void updateVisibility(photo.id, "visible")}
+                            title={isReported ? "Approve" : "Unhide"}
+                            type="button"
+                          >
+                            {isReported ? <IconCheck /> : <IconEye />}
+                          </button>
+                        )}
+                        <button
+                          className="grid size-7 place-items-center rounded-full bg-black/60 text-red-300 shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                          onClick={() => setConfirmingDeleteId(photo.id)}
+                          title="Delete"
+                          type="button"
+                        >
+                          <IconTrash />
+                        </button>
+                        {customAlbums && eventPublicId && (
+                          <button
+                            className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                            onClick={() => setAddToAlbumPhotoId(photo.id)}
+                            title="Add to album"
+                            type="button"
+                          >
+                            <IconFolderPlus />
+                          </button>
+                        )}
+                        <button
+                          className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                          onClick={() => setSharingPhotoId(photo.id)}
+                          title="Share"
+                          type="button"
+                        >
+                          <IconShare />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {viewSize === "compact" ? null : <div className="space-y-3 p-4">
                 <div className="flex items-center justify-between gap-2">
@@ -467,57 +857,61 @@ export function ModerationGrid({
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
                     {photo.visibility === "visible" ? (
                       <button
-                        className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "hidden")}
+                        title="Hide"
                         type="button"
                       >
-                        Hide
+                        <IconEyeOff />
                       </button>
                     ) : (
                       <button
-                        className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "visible")}
+                        title={isReported ? "Approve" : "Unhide"}
                         type="button"
                       >
-                        {isReported ? "Approve" : "Unhide"}
+                        {isReported ? <IconCheck /> : <IconEye />}
                       </button>
                     )}
                     {isReported && (
                       <button
-                        className="flex-1 rounded-full border border-black/10 bg-black/5 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full border border-black/10 bg-black/5 text-ink transition hover:bg-black/10 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "hidden")}
+                        title="Hide"
                         type="button"
                       >
-                        Hide
+                        <IconEyeOff />
                       </button>
                     )}
                     <button
-                      className="rounded-full border border-red-100 px-3 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-50 active:scale-95"
+                      className="grid size-9 place-items-center rounded-full border border-red-100 text-red-500 transition hover:bg-red-50 active:scale-95"
                       onClick={() => setConfirmingDeleteId(photo.id)}
+                      title="Delete"
                       type="button"
                     >
-                      Delete
+                      <IconTrash />
                     </button>
                     {customAlbums && eventPublicId && (
                       <button
-                        className="rounded-full border border-black/10 bg-black/5 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full border border-black/10 bg-black/5 text-ink transition hover:bg-black/10 active:scale-95"
                         onClick={() => setAddToAlbumPhotoId(photo.id)}
                         title="Add to album"
                         type="button"
                       >
-                        + Album
+                        <IconFolderPlus />
                       </button>
                     )}
                     <button
-                      className="rounded-full border border-black/10 bg-black/5 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+                      className="grid size-9 place-items-center rounded-full border border-black/10 bg-black/5 text-ink transition hover:bg-black/10 active:scale-95"
                       onClick={() => setSharingPhotoId(photo.id)}
-                      title="Share with caption"
+                      title="Share"
                       type="button"
                     >
-                      Share ↗
+                      <IconShare />
                     </button>
                   </div>
                 )}
@@ -581,6 +975,64 @@ export function ModerationGrid({
           onClose={() => setAddToAlbumPhotoId(null)}
           photoId={addToAlbumPhotoId}
         />
+      )}
+
+      {bulkAlbumIds && customAlbums && eventPublicId && (
+        <BulkAddToAlbumSheet
+          customAlbums={customAlbums}
+          eventPublicId={eventPublicId}
+          onClose={() => { setBulkAlbumIds(null); exitSelectMode(); }}
+          photoIds={bulkAlbumIds}
+        />
+      )}
+
+      {/* ── Bulk action bar ── */}
+      {selectMode && selectedIds.size > 0 && (
+        <div className="sticky bottom-4 z-40 mt-4 flex justify-center">
+          <div className="flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 shadow-xl ring-1 ring-white/10">
+            <span className="pr-2 text-sm font-semibold text-white">
+              {selectedIds.size} selected
+            </span>
+            <button
+              className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
+              disabled={bulkWorking}
+              onClick={() => void bulkUpdateVisibility("visible")}
+              title="Show all"
+              type="button"
+            >
+              <IconEye />
+            </button>
+            <button
+              className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
+              disabled={bulkWorking}
+              onClick={() => void bulkUpdateVisibility("hidden")}
+              title="Hide all"
+              type="button"
+            >
+              <IconEyeOff />
+            </button>
+            {customAlbums && eventPublicId && (
+              <button
+                className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
+                disabled={bulkWorking}
+                onClick={() => setBulkAlbumIds(Array.from(selectedIds))}
+                title="Add to album"
+                type="button"
+              >
+                <IconFolderPlus />
+              </button>
+            )}
+            <button
+              className="grid size-9 place-items-center rounded-full bg-red-500/80 text-white transition hover:bg-red-500 active:scale-95 disabled:opacity-50"
+              disabled={bulkWorking}
+              onClick={() => void bulkUpdateVisibility("deleted")}
+              title="Delete all"
+              type="button"
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
       )}
     </section>
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getEventManagerForApi } from "@/server/auth";
 import { getPhotoEventOwner, setPhotoVisibility } from "@/server/data";
+import { logger } from "@/server/logger";
 import type { PhotoVisibility } from "@/types/domain";
 
 type PhotoRouteProps = {
@@ -49,6 +50,8 @@ export async function PATCH(request: Request, { params }: PhotoRouteProps) {
     }
     throw error;
   }
+
+  logger.info("photo_visibility_changed", { photo_id: photoId, visibility: body.visibility });
 
   return NextResponse.json({ ok: true });
 }

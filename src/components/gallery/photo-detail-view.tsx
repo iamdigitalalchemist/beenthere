@@ -472,7 +472,7 @@ export function PhotoDetailView({
             alt={`Photo by ${uploaderName}`}
             className="lightbox-photo-enter aspect-[4/5] w-full rounded-[2rem] bg-border object-cover shadow-soft"
             key={photo.id}
-            src={photo.previewUrl || photo.thumbnailUrl}
+            src={photo.previewUrl || photo.thumbnailUrl || undefined}
             style={{
               transform: swipeDx ? `translateX(${swipeDx * 0.35}px)` : undefined,
               transition: swipeDx ? "none" : "transform 0.2s ease",
@@ -730,7 +730,7 @@ export function PhotoDetailView({
                     <img
                       alt={`Related photo by ${getUploaderName(relatedPhoto)}`}
                       className="aspect-[4/5] w-full object-cover"
-                      src={relatedPhoto.thumbnailUrl}
+                      src={relatedPhoto.thumbnailUrl || undefined}
                     />
                   </button>
                 );

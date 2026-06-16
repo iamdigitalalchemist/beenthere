@@ -15,6 +15,7 @@ import { getEventPhotoReports } from "@/server/photo-reports";
 import { getSmartAlbums } from "@/server/smart-albums";
 import { getCustomAlbums } from "@/server/custom-albums";
 import { createSignedPhotoReadUrl } from "@/server/r2";
+import { logger } from "@/server/logger";
 import type {
   EventParticipant,
   EventRecord,
@@ -320,6 +321,7 @@ export async function getEventByJoinToken(token: string) {
 
 export async function getEventGallery(publicId: string) {
   const pool = getDatabasePool();
+  const t0 = Date.now();
 
   if (!pool) {
     const event = getDemoEventByPublicId(publicId);
@@ -381,6 +383,12 @@ export async function getEventGallery(publicId: string) {
       row.event_participants?.display_name ?? "Guest",
     ]),
   );
+
+  logger.info("gallery_loaded", {
+    public_id: publicId,
+    photo_count: photos.length,
+    duration_ms: Date.now() - t0,
+  });
 
   return {
     event: mapEventRow(eventRow),
@@ -536,18 +544,28 @@ export async function setPhotoVisibility(input: {
     throw new Error("POSTGRES_URL is not configured.");
   }
 
-  const { rows } = await pool.query<{ id: string }>(
+  const { rows } = await pool.query<{ id: string; event_id: string; original_size_bytes: string }>(
     `update beenthere.photos
         set visibility = $2::beenthere.photo_visibility,
             deleted_at = case when $2::beenthere.photo_visibility = 'deleted' then now() else null end
       where id = $1
         and visibility <> 'deleted'
-      returning id`,
+      returning id, event_id, original_size_bytes`,
     [input.photoId, input.visibility],
   );
 
   if (!rows[0]) {
     throw new Error("Photo not found.");
+  }
+
+  if (input.visibility === "deleted") {
+    await pool.query(
+      `update beenthere.events
+          set storage_used_bytes = greatest(0, storage_used_bytes - $1),
+              updated_at = now()
+        where id = $2`,
+      [rows[0].original_size_bytes, rows[0].event_id],
+    );
   }
 
   // A host visibility decision resolves any open reports on the photo.
@@ -616,7 +634,9 @@ export async function createEvent(input: {
     ],
   );
 
-  return mapEventRow(rows[0]);
+  const event = mapEventRow(rows[0]);
+  logger.info("event_created", { event_id: event.id, public_id: event.publicId, owner_user_id: input.ownerUserId });
+  return event;
 }
 
 export async function getEventsByOwner(
@@ -706,7 +726,9 @@ export async function activateEvent(publicId: string): Promise<EventRecord> {
     throw new Error("Event not found.");
   }
 
-  return mapEventRow(rows[0]);
+  const event = mapEventRow(rows[0]);
+  logger.info("event_activated", { public_id: publicId, event_id: event.id });
+  return event;
 }
 
 export async function createGuestParticipant(input: {

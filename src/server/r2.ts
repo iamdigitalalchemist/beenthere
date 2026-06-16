@@ -15,14 +15,24 @@ import { getR2Env } from "@/server/env";
 const SIGNED_UPLOAD_TTL_SECONDS = 10 * 60;
 const SIGNED_READ_TTL_SECONDS = 15 * 60;
 
+// Signed URL in-memory cache: key → { url, expiresAt }
+// TTL is slightly shorter than the actual signed URL to avoid serving near-expired URLs.
+const CACHE_TTL_MS = (SIGNED_READ_TTL_SECONDS - 60) * 1000;
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+
+// Singleton S3Client — reused across all invocations in the same process.
+let _r2Client: { bucketName: string; client: S3Client } | undefined;
+
 export function createR2Client() {
+  if (_r2Client) return _r2Client;
+
   const env = getR2Env();
 
   if (!env.configured) {
     throw new Error(`Missing R2 configuration: ${env.missing.join(", ")}`);
   }
 
-  return {
+  _r2Client = {
     bucketName: env.bucketName,
     client: new S3Client({
       region: "auto",
@@ -33,6 +43,7 @@ export function createR2Client() {
       },
     }),
   };
+  return _r2Client;
 }
 
 export async function createSignedPhotoUploadUrl(input: {
@@ -57,9 +68,14 @@ export async function createSignedPhotoReadUrl(objectKey: string) {
     return createLocalMediaUrl(objectKey);
   }
 
+  const cached = signedUrlCache.get(objectKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.url;
+  }
+
   const { bucketName, client } = createR2Client();
 
-  return getSignedUrl(
+  const url = await getSignedUrl(
     client,
     new GetObjectCommand({
       Bucket: bucketName,
@@ -69,6 +85,18 @@ export async function createSignedPhotoReadUrl(objectKey: string) {
       expiresIn: SIGNED_READ_TTL_SECONDS,
     },
   );
+
+  signedUrlCache.set(objectKey, { url, expiresAt: Date.now() + CACHE_TTL_MS });
+
+  // Evict entries that have expired to prevent unbounded growth.
+  if (signedUrlCache.size > 5000) {
+    const now = Date.now();
+    for (const [k, v] of signedUrlCache) {
+      if (v.expiresAt <= now) signedUrlCache.delete(k);
+    }
+  }
+
+  return url;
 }
 
 export async function getR2ObjectBuffer(objectKey: string) {

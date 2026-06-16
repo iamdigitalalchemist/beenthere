@@ -7,6 +7,7 @@ import {
   createParticipantForSession,
   updateParticipantProfile,
 } from "@/server/sessions";
+import { logger } from "@/server/logger";
 import type { GuestSocialHandles } from "@/types/domain";
 
 export async function POST(request: Request) {
@@ -51,11 +52,20 @@ export async function POST(request: Request) {
       secureCookies: isSecureCookieContext(request),
     });
 
+    logger.info("participant_joined", {
+      event_id: body.eventId,
+      participant_id: result.participant.id,
+    });
+
     return NextResponse.json({
       participant: result.participant,
       recoveryCode: result.recoveryCode,
     });
   } catch (error) {
+    logger.error("participant_join_failed", {
+      event_id: body.eventId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       {
         error:

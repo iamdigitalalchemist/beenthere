@@ -220,6 +220,8 @@ export function GalleryExperience({
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [viewSize, setViewSize] = useState<ViewSize>("medium");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const photoIdsRef = useRef(new Set(initialPhotos.map((photo) => photo.id)));
   const fileInputRef = useRef<HTMLInputElement>(null);
   const masonryRef = useRef<HTMLDivElement>(null);
@@ -329,7 +331,19 @@ export function GalleryExperience({
             setPendingPhotos(body.photos);
             setPendingUploaderNames(body.uploaderNames);
           } else {
-            setPhotos(body.photos);
+            // Merge: keep optimistic blob URLs for photos the server doesn't have thumbnails for yet.
+            setPhotos((current) => {
+              const currentMap = new Map(current.map((p) => [p.id, p]));
+              return body.photos.map((p) => {
+                const existing = currentMap.get(p.id);
+                if (!existing) return p;
+                return {
+                  ...p,
+                  thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+                  previewUrl: p.previewUrl || existing.previewUrl,
+                };
+              });
+            });
             setUploaderNameMap(body.uploaderNames);
           }
         },
@@ -912,6 +926,9 @@ export function GalleryExperience({
         },
       );
 
+      // Eagerly register the real IDs before any async work so the subscription
+      // callback doesn't treat our own upload as "unseen" new photos.
+      for (const p of optimisticPhotos) photoIdsRef.current.add(p.id);
       setPhotos((currentPhotos) => [...optimisticPhotos, ...currentPhotos]);
       setUploadMessage(
         `Uploading ${optimisticPhotos.length} photo${
@@ -954,7 +971,13 @@ export function GalleryExperience({
           const completedPhoto = completedPhotos.find(
             (nextPhoto) => nextPhoto.id === photo.id,
           );
-          return completedPhoto ?? photo;
+          if (!completedPhoto) return photo;
+          // Keep the optimistic blob URL until the server has a real thumbnail.
+          return {
+            ...completedPhoto,
+            thumbnailUrl: completedPhoto.thumbnailUrl || photo.thumbnailUrl,
+            previewUrl: completedPhoto.previewUrl || photo.previewUrl,
+          };
         }),
       );
       setUploadMessage(
@@ -984,6 +1007,35 @@ export function GalleryExperience({
         );
       }, 900);
     }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === filteredPhotos.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredPhotos.map((p) => p.id)));
+    }
+  }
+
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }
+
+  function bulkSave(save: boolean) {
+    const nextIds = new Set(savedPhotoIds);
+    for (const id of selectedIds) save ? nextIds.add(id) : nextIds.delete(id);
+    setSavedPhotoIds(nextIds);
+    writeStoredFavoriteIds(event.id, [...nextIds], participant?.id);
+    exitSelectMode();
   }
 
   async function toggleSaved(photoId: string) {
@@ -1095,30 +1147,64 @@ export function GalleryExperience({
 
         <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-3 px-5 pb-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:space-y-0 sm:px-6">
           <div className="flex items-center gap-2">
-            <fieldset className="flex rounded-full bg-black/5 p-1">
-              <legend className="sr-only">Filter photos</legend>
-              {FILTER_OPTIONS.map((option) => (
-                <label
-                  className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
-                    filter === option.id
-                      ? "bg-white text-ink shadow-sm"
-                      : "text-ink-muted"
-                  }`}
-                  key={option.id}
-                >
+            {selectMode ? (
+              <div className="flex items-center gap-2">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
                   <input
-                    checked={filter === option.id}
-                    className="sr-only"
-                    name="gallery-filter"
-                    onChange={() => setFilter(option.id)}
-                    type="radio"
-                    value={option.id}
+                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                    className="size-4 accent-accent"
+                    onChange={toggleSelectAll}
+                    type="checkbox"
                   />
-                  {option.label}
+                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
                 </label>
-              ))}
-            </fieldset>
-            <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+                <button
+                  className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+                  onClick={exitSelectMode}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <>
+                <fieldset className="flex rounded-full bg-black/5 p-1">
+                  <legend className="sr-only">Filter photos</legend>
+                  {FILTER_OPTIONS.map((option) => (
+                    <label
+                      className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
+                        filter === option.id
+                          ? "bg-white text-ink shadow-sm"
+                          : "text-ink-muted"
+                      }`}
+                      key={option.id}
+                    >
+                      <input
+                        checked={filter === option.id}
+                        className="sr-only"
+                        name="gallery-filter"
+                        onChange={() => setFilter(option.id)}
+                        type="radio"
+                        value={option.id}
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </fieldset>
+                <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+              </>
+            )}
+            <button
+              className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
+                selectMode
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-black/10 bg-white/80 text-ink backdrop-blur-sm hover:bg-white"
+              }`}
+              onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+              type="button"
+            >
+              Select
+            </button>
           </div>
           <input
             className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:max-w-xs"
@@ -1177,18 +1263,36 @@ export function GalleryExperience({
               const isSaved = savedPhotoIds.has(photo.id);
               const squareCrop = GALLERY_CONFIG[viewSize].squareCrop;
 
+              const isSelected = selectedIds.has(photo.id);
+
               return (
                 <article
-                  className="gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl bg-black/5 shadow-sm"
+                  className={`gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl bg-black/5 shadow-sm transition ${isSelected ? "ring-2 ring-accent ring-offset-1" : ""}`}
                   key={photo.id}
                   style={{
                     animationDelay: `${Math.min(index, 14) * 35}ms`,
                     gridRowEnd: `span ${getGalleryRowSpan(photo, masonryWidth, viewSize)}`,
                   }}
                 >
+                  {selectMode && (
+                    <button
+                      className="absolute inset-0 z-10 cursor-pointer"
+                      onClick={() => toggleSelect(photo.id)}
+                      type="button"
+                    />
+                  )}
+                  {selectMode && (
+                    <div className={`pointer-events-none absolute left-2 top-2 z-20 flex size-6 items-center justify-center rounded-full border-2 transition ${isSelected ? "border-accent bg-accent" : "border-white/80 bg-black/30"}`}>
+                      {isSelected && (
+                        <svg fill="none" height="12" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="12">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                  )}
                   <button
                     className={`tap-target block touch-manipulation ${squareCrop ? "aspect-square w-full" : "absolute inset-0"}`}
-                    onClick={() => openLightbox(index)}
+                    onClick={() => !selectMode && openLightbox(index)}
                     type="button"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1196,7 +1300,7 @@ export function GalleryExperience({
                       alt={`Photo by ${uploaderName}`}
                       className="pointer-events-none h-full w-full bg-border object-cover transition duration-300 group-hover:scale-[1.02]"
                       draggable={false}
-                      src={photo.thumbnailUrl}
+                      src={photo.thumbnailUrl || undefined}
                     />
                   </button>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
@@ -1238,6 +1342,40 @@ export function GalleryExperience({
       </section>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/5 bg-white/80 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-6">
+        {selectMode && selectedIds.size > 0 ? (
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2">
+            <span className="text-sm font-semibold text-ink">{selectedIds.size} selected</span>
+            <a
+              className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+              download
+              href={`/api/events/${event.publicId}/download?${Array.from(selectedIds).map((id) => `photoId=${id}`).join("&")}`}
+              onClick={exitSelectMode}
+            >
+              Download ZIP
+            </a>
+            <button
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover active:scale-95"
+              onClick={() => bulkSave(true)}
+              type="button"
+            >
+              Save all
+            </button>
+            <button
+              className="rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95"
+              onClick={() => bulkSave(false)}
+              type="button"
+            >
+              Unsave all
+            </button>
+            <button
+              className="rounded-full border border-black/10 px-4 py-2.5 text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+              onClick={exitSelectMode}
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <p className="hidden text-sm text-ink-muted sm:block">
             {filteredPhotos.length} photo
@@ -1255,6 +1393,7 @@ export function GalleryExperience({
             />
           </label>
         </div>
+        )}
       </div>
 
       {showIdentityForm ? (
