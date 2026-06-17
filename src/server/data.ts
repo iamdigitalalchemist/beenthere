@@ -24,6 +24,11 @@ import type {
   PhotoVisibility,
 } from "@/types/domain";
 
+const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
+  template, status, plan, starts_at, ends_at, upload_closes_at,
+  gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
+  storage_limit_bytes, storage_used_bytes, upload_policy`;
+
 type EventRow = {
   id: string;
   public_id: string;
@@ -306,10 +311,7 @@ export async function getEventByJoinToken(token: string) {
   }
 
   const { rows } = await pool.query<EventRow>(
-    `select id, public_id, owner_user_id, join_token, name, template, status,
-            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
-            storage_used_bytes
+    `select ${EVENT_SELECT_COLUMNS}
        from beenthere.events
       where join_token_hash = $1
       limit 1`,
@@ -339,10 +341,7 @@ export async function getEventGallery(publicId: string) {
   }
 
   const eventResult = await pool.query<EventRow>(
-    `select id, public_id, owner_user_id, join_token, name, template, status,
-            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
-            storage_used_bytes
+    `select ${EVENT_SELECT_COLUMNS}
        from beenthere.events
       where public_id = $1
       limit 1`,
@@ -589,10 +588,6 @@ export async function setPhotoVisibility(input: {
   ]);
 }
 
-const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
-  template, status, plan, starts_at, ends_at, upload_closes_at,
-  gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
-  storage_limit_bytes, storage_used_bytes, upload_policy`;
 
 const DEFAULT_EVENT_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;
 
