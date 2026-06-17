@@ -690,52 +690,59 @@ export function ModerationGrid({
         </div>
 
         {/* Visibility pills + size toggle row */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            {selectMode ? (
-              <>
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
-                  <input
-                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
-                    className="size-4 accent-accent"
-                    onChange={toggleSelectAll}
-                    type="checkbox"
-                  />
-                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-                </label>
-                <button
-                  className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
-                  onClick={exitSelectMode}
-                  type="button"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <p className="text-sm text-ink-muted">
-                {message}
-                {activeFilterCount > 0 && (
-                  <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
-                    {filteredPhotos.length} shown
-                  </span>
-                )}
-              </p>
-            )}
+        <div className="space-y-2">
+          {/* Top row: status message / select controls + Select button + ViewSizeToggle */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex items-center gap-3">
+              {selectMode ? (
+                <>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
+                    <input
+                      checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                      className="size-4 accent-accent"
+                      onChange={toggleSelectAll}
+                      type="checkbox"
+                    />
+                    {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                  </label>
+                  <button
+                    className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+                    onClick={exitSelectMode}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <p className="truncate text-sm text-ink-muted">
+                  {message}
+                  {activeFilterCount > 0 && (
+                    <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
+                      {filteredPhotos.length} shown
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
+                  selectMode
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-black/10 bg-white text-ink hover:bg-black/5"
+                }`}
+                onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+                type="button"
+              >
+                Select
+              </button>
+              <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-          <button
-            className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
-              selectMode
-                ? "border-accent bg-accent/10 text-accent"
-                : "border-black/10 bg-white text-ink hover:bg-black/5"
-            }`}
-            onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
-            type="button"
-          >
-            Select
-          </button>
-          <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
-          <div className="flex gap-1 rounded-2xl bg-black/5 p-1 sm:w-fit">
+
+          {/* Bottom row: scrollable visibility filter pills */}
+          <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+            <div className="flex gap-1 rounded-2xl bg-black/5 p-1 w-max sm:w-fit">
             {([
               { id: "all", label: "All" },
               { id: "visible", label: "Visible" },
@@ -744,7 +751,7 @@ export function ModerationGrid({
               { id: "reported", label: "Reported" },
             ] as { id: VisibilityFilter; label: string }[]).map(({ id, label }) => (
               <button
-                className={`rounded-xl px-4 py-1.5 text-sm font-semibold transition active:scale-95 ${
+                className={`rounded-xl px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition active:scale-95 ${
                   visibilityFilter === id
                     ? "bg-white text-ink shadow-sm"
                     : "text-ink-muted hover:text-ink"
@@ -766,7 +773,7 @@ export function ModerationGrid({
                 )}
               </button>
             ))}
-          </div>
+            </div>
           </div>
         </div>
       </div>

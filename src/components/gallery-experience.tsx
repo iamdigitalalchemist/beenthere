@@ -1177,57 +1177,60 @@ export function GalleryExperience({
           </button>
         </div>
 
-        <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-3 px-5 pb-4 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:space-y-0 sm:px-6">
-          <div className="flex items-center gap-2">
-            {selectMode ? (
-              <div className="flex items-center gap-2">
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
-                  <input
-                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
-                    className="size-4 accent-accent"
-                    onChange={toggleSelectAll}
-                    type="checkbox"
-                  />
-                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-                </label>
-                <button
-                  className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
-                  onClick={exitSelectMode}
-                  type="button"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <>
-                <fieldset className="flex rounded-full bg-black/5 p-1">
-                  <legend className="sr-only">Filter photos</legend>
-                  {FILTER_OPTIONS.map((option) => (
-                    <label
-                      className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
-                        filter === option.id
-                          ? "bg-white text-ink shadow-sm"
-                          : "text-ink-muted"
-                      }`}
-                      key={option.id}
-                    >
-                      <input
-                        checked={filter === option.id}
-                        className="sr-only"
-                        name="gallery-filter"
-                        onChange={() => setFilter(option.id)}
-                        type="radio"
-                        value={option.id}
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                </fieldset>
-                <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
-              </>
-            )}
+        <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-2 px-5 pb-4 sm:px-6">
+          {/* Filter row: pills + view toggle + select */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              {selectMode ? (
+                <div className="flex items-center gap-2">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
+                    <input
+                      checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                      className="size-4 accent-accent"
+                      onChange={toggleSelectAll}
+                      type="checkbox"
+                    />
+                    {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                  </label>
+                  <button
+                    className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+                    onClick={exitSelectMode}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <fieldset className="flex rounded-full bg-black/5 p-1">
+                    <legend className="sr-only">Filter photos</legend>
+                    {FILTER_OPTIONS.map((option) => (
+                      <label
+                        className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
+                          filter === option.id
+                            ? "bg-white text-ink shadow-sm"
+                            : "text-ink-muted"
+                        }`}
+                        key={option.id}
+                      >
+                        <input
+                          checked={filter === option.id}
+                          className="sr-only"
+                          name="gallery-filter"
+                          onChange={() => setFilter(option.id)}
+                          type="radio"
+                          value={option.id}
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </fieldset>
+                  <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+                </>
+              )}
+            </div>
             <button
-              className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
                 selectMode
                   ? "border-accent bg-accent/10 text-accent"
                   : "border-black/10 bg-white/80 text-ink backdrop-blur-sm hover:bg-white"
@@ -1238,8 +1241,9 @@ export function GalleryExperience({
               Select
             </button>
           </div>
+          {/* Search: full width on its own row */}
           <input
-            className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 sm:max-w-xs"
+            className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
             onChange={(inputEvent) => setSearch(inputEvent.target.value)}
             placeholder="Search by name"
             value={search}

@@ -102,10 +102,11 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         )}
 
         {/* ── Tabs ── */}
-        <div className="mb-7 flex gap-1 rounded-2xl bg-black/5 p-1 sm:w-fit">
+        <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="flex gap-1 rounded-2xl bg-black/5 p-1 w-max sm:w-fit">
           {tabs.map((t) => (
             <Link
-              className={`rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95 ${
+              className={`whitespace-nowrap rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95 ${
                 tab === t.id
                   ? "bg-white text-ink shadow-sm"
                   : "text-ink-muted hover:text-ink"
@@ -116,6 +117,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               {t.label}
             </Link>
           ))}
+        </div>
         </div>
 
         {/* ══ OVERVIEW TAB ══ */}
@@ -202,7 +204,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         {tab === "photos" && (
           <div>
             {/* All / Albums sub-toggle */}
-            <div className="mb-6 flex gap-1 rounded-2xl bg-black/5 p-1 w-fit">
+            <div className="mb-6 flex gap-1 rounded-2xl bg-black/5 p-1 w-fit max-w-full overflow-x-auto">
               {[
                 { id: "all", label: "All photos" },
                 { id: "albums", label: `Albums${(dashboard.albums.length + dashboard.customAlbums.length) > 0 ? ` · ${dashboard.albums.length + dashboard.customAlbums.length}` : ""}` },
