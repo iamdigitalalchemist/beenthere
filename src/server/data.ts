@@ -542,7 +542,7 @@ export async function getSlideshowEvent(publicId: string) {
   return {
     event: gallery.event,
     photos: gallery.photos.filter(
-      (photo) => photo.status === "ready" && photo.visibility === "visible",
+      (photo) => photo.status === "ready" && photo.visibility === "visible" && photo.inGallery,
     ),
   };
 }
