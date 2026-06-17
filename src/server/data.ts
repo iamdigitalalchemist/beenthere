@@ -442,6 +442,7 @@ export async function getEventPhotos(eventId: string) {
 }
 
 export async function getDashboardEvent(publicId: string) {
+  // Get event metadata via gallery (handles demo event, pin, etc.)
   const gallery = await getEventGallery(publicId);
   const pool = getDatabasePool();
 
@@ -449,31 +450,38 @@ export async function getDashboardEvent(publicId: string) {
     return undefined;
   }
 
+  // For the dashboard we need ALL non-deleted photos, not just gallery-visible ones.
+  const allPhotosResult = pool
+    ? await getEventPhotos(gallery.event.id)
+    : { photos: gallery.photos, uploaderNames: gallery.uploaderNames };
+
   if (!pool) {
     const [albums, customAlbums] = await Promise.all([
       getSmartAlbums(gallery.event.id),
       getCustomAlbums(gallery.event.id),
     ]);
     return {
-      ...gallery,
+      event: gallery.event,
+      photos: allPhotosResult.photos,
+      uploaderNames: allPhotosResult.uploaderNames,
       albums,
       customAlbums,
       reports: {},
       stats: {
-        totalPhotos: gallery.photos.length,
-        visiblePhotos: gallery.photos.filter(
+        totalPhotos: allPhotosResult.photos.length,
+        visiblePhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "visible",
         ).length,
-        hiddenPhotos: gallery.photos.filter(
+        hiddenPhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "hidden",
         ).length,
-        reportedPhotos: gallery.photos.filter(
+        reportedPhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "reported",
         ).length,
-        processingPhotos: gallery.photos.filter(
+        processingPhotos: allPhotosResult.photos.filter(
           (photo) => photo.status !== "ready",
         ).length,
-        guestCount: new Set(gallery.photos.map((photo) => photo.participantId))
+        guestCount: new Set(allPhotosResult.photos.map((photo) => photo.participantId))
           .size,
       },
     };
@@ -507,7 +515,9 @@ export async function getDashboardEvent(publicId: string) {
   const stats = rows[0];
 
   return {
-    ...gallery,
+    event: gallery.event,
+    photos: allPhotosResult.photos,
+    uploaderNames: allPhotosResult.uploaderNames,
     albums,
     customAlbums,
     reports,
