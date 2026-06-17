@@ -391,47 +391,10 @@ export function ModerationGrid({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    const channel = supabase
-      .channel(`dashboard-photos:${eventId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "beenthere", table: "photos", filter: `event_id=eq.${eventId}` },
-        async () => {
-          const res = await fetch(`/api/events/${eventId}/photos`);
-          if (!res.ok) return;
-          const body = (await res.json()) as PhotosApiResponse;
-          setPhotos((current) => {
-            const currentMap = new Map(current.map((p) => [p.id, p]));
-            return body.photos.map((p) => {
-              const existing = currentMap.get(p.id);
-              if (!existing) return p;
-              return {
-                ...p,
-                thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
-                previewUrl: p.previewUrl || existing.previewUrl,
-              };
-            });
-          });
-          setUploaderNames(body.uploaderNames);
-        },
-      )
-      .subscribe();
-
-    return () => { void supabase.removeChannel(channel); };
-  }, [eventId]);
-
-  // Poll every 5s while any photo is still processing — fallback for when the
-  // Supabase subscription misses the Trigger.dev status update.
-  useEffect(() => {
-    if (!eventId) return;
-    const hasProcessing = photos.some((p) => p.status !== "ready");
-    if (!hasProcessing) return;
-
-    const interval = setInterval(async () => {
+    async function refreshPhotos() {
       const res = await fetch(`/api/events/${eventId}/photos`);
       if (!res.ok) return;
       const body = (await res.json()) as PhotosApiResponse;
-      const allReady = body.photos.every((p) => p.status === "ready");
       setPhotos((current) => {
         const currentMap = new Map(current.map((p) => [p.id, p]));
         return body.photos.map((p) => {
@@ -445,11 +408,27 @@ export function ModerationGrid({
         });
       });
       setUploaderNames(body.uploaderNames);
-      if (allReady) clearInterval(interval);
-    }, 5000);
+    }
 
-    return () => clearInterval(interval);
-  }, [photos, eventId]);
+    const channel = supabase
+      .channel(`dashboard-photos:${eventId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "beenthere", table: "photos", filter: `event_id=eq.${eventId}` },
+        () => { void refreshPhotos(); },
+      )
+      .subscribe();
+
+    // Also poll every 8s as a hard fallback — covers cases where the
+    // Supabase subscription doesn't fire (e.g. new photos from guests).
+    const poll = setInterval(() => { void refreshPhotos(); }, 8000);
+
+    return () => {
+      void supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
+  }, [eventId]);
+
 
   useEffect(() => {
     try {
@@ -623,7 +602,7 @@ export function ModerationGrid({
               <option value="all">All dates</option>
               {dateOptions.map((d) => (
                 <option key={d} value={d}>
-                  {new Date(d + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                  {new Date(d + "T12:00:00").toLocaleDateString("en-GB", { month: "short", day: "numeric", year: "numeric" })}
                 </option>
               ))}
             </select>
