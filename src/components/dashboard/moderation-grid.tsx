@@ -420,6 +420,37 @@ export function ModerationGrid({
     return () => { void supabase.removeChannel(channel); };
   }, [eventId]);
 
+  // Poll every 5s while any photo is still processing — fallback for when the
+  // Supabase subscription misses the Trigger.dev status update.
+  useEffect(() => {
+    if (!eventId) return;
+    const hasProcessing = photos.some((p) => p.status !== "ready" && !p.thumbnailUrl);
+    if (!hasProcessing) return;
+
+    const interval = setInterval(async () => {
+      const res = await fetch(`/api/events/${eventId}/photos`);
+      if (!res.ok) return;
+      const body = (await res.json()) as PhotosApiResponse;
+      const allReady = body.photos.every((p) => p.status === "ready");
+      setPhotos((current) => {
+        const currentMap = new Map(current.map((p) => [p.id, p]));
+        return body.photos.map((p) => {
+          const existing = currentMap.get(p.id);
+          if (!existing) return p;
+          return {
+            ...p,
+            thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+            previewUrl: p.previewUrl || existing.previewUrl,
+          };
+        });
+      });
+      setUploaderNames(body.uploaderNames);
+      if (allReady) clearInterval(interval);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [photos, eventId]);
+
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem("bt:moderation-view-size") as ViewSize | null;

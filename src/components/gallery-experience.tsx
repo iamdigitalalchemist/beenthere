@@ -359,6 +359,37 @@ export function GalleryExperience({
     photoIdsRef.current = new Set(photos.map((photo) => photo.id));
   }, [photos]);
 
+  // Poll for status updates when any photo is still processing.
+  // This is a fallback for when the Supabase subscription misses the Trigger.dev update.
+  useEffect(() => {
+    const hasProcessing = photos.some((p) => p.status !== "ready" && p.thumbnailUrl);
+    if (!hasProcessing) return;
+
+    const interval = setInterval(async () => {
+      const response = await fetch(`/api/events/${event.id}/photos`);
+      const body = await readJsonResponse<PhotosResponse>(response);
+      if (!body?.photos) return;
+
+      const allReady = body.photos.every((p) => p.status === "ready");
+      setPhotos((current) => {
+        const currentMap = new Map(current.map((p) => [p.id, p]));
+        return body.photos.map((p) => {
+          const existing = currentMap.get(p.id);
+          if (!existing) return p;
+          return {
+            ...p,
+            thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+            previewUrl: p.previewUrl || existing.previewUrl,
+          };
+        });
+      });
+      setUploaderNameMap(body.uploaderNames);
+      if (allReady) clearInterval(interval);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [photos, event.id]);
+
   useEffect(() => {
     queueMicrotask(() => {
       const anonymousFavoriteIds = readStoredFavoriteIds(event.id);
