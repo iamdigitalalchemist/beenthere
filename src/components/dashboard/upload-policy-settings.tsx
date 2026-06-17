@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { UploadPolicy } from "@/types/domain";
 
 const POLICIES: {
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export function UploadPolicySettings({ eventPublicId, uploadPolicy: initialPolicy }: Props) {
+  const router = useRouter();
   const [policy, setPolicy] = useState<UploadPolicy>(initialPolicy);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,7 +40,8 @@ export function UploadPolicySettings({ eventPublicId, uploadPolicy: initialPolic
   const currentIndex = POLICIES.findIndex((p) => p.value === policy);
 
   async function save(next: UploadPolicy) {
-    if (next === policy) return;
+    if (next === policy || saving) return;
+    const prev = policy;
     setPolicy(next);
     setSaving(true);
     setMessage(null);
@@ -50,8 +53,13 @@ export function UploadPolicySettings({ eventPublicId, uploadPolicy: initialPolic
     });
 
     setSaving(false);
-    setMessage(res.ok ? "Saved." : "Could not save. Try again.");
-    if (!res.ok) setPolicy(policy);
+    if (res.ok) {
+      setMessage("Saved.");
+      router.refresh();
+    } else {
+      setPolicy(prev);
+      setMessage("Could not save. Try again.");
+    }
   }
 
   const current = POLICIES[currentIndex];
