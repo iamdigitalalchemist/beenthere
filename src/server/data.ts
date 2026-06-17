@@ -367,7 +367,7 @@ export async function getEventGallery(publicId: string) {
        left join beenthere.event_participants ep
          on ep.id = p.event_participant_id
       where p.event_id = $1
-        and p.visibility <> 'deleted'
+        and p.visibility = 'visible'
       order by p.uploaded_at desc`,
     [eventRow.id],
   );
@@ -418,7 +418,7 @@ export async function getEventPhotos(eventId: string) {
        left join beenthere.event_participants ep
          on ep.id = p.event_participant_id
       where p.event_id = $1
-        and p.visibility <> 'deleted'
+        and p.visibility = 'visible'
       order by p.uploaded_at desc`,
     [eventId],
   );
@@ -536,7 +536,7 @@ export async function getSlideshowEvent(publicId: string) {
 
 export async function setPhotoVisibility(input: {
   photoId: string;
-  visibility: Extract<PhotoVisibility, "visible" | "hidden" | "deleted">;
+  visibility: Extract<PhotoVisibility, "visible" | "pending_review" | "hidden" | "deleted">;
 }) {
   const pool = getDatabasePool();
 

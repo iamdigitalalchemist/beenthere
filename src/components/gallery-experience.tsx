@@ -169,7 +169,7 @@ function createLocalPhoto(
     eventId,
     participantId,
     status: "processing",
-    visibility: "visible",
+    visibility: "pending_review",
     originalKey: `local/${file.name}`,
     thumbnailUrl: previewUrl,
     previewUrl,

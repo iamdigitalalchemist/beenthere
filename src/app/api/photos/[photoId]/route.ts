@@ -31,11 +31,12 @@ export async function PATCH(request: Request, { params }: PhotoRouteProps) {
 
   if (
     body.visibility !== "visible" &&
+    body.visibility !== "pending_review" &&
     body.visibility !== "hidden" &&
     body.visibility !== "deleted"
   ) {
     return NextResponse.json(
-      { error: "visibility must be visible, hidden, or deleted." },
+      { error: "visibility must be visible, pending_review, hidden, or deleted." },
       { status: 400 },
     );
   }

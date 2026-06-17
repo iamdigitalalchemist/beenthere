@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       eventId: photoRow.event_id,
       participantId: photoRow.event_participant_id,
       status: "processing",
-      visibility: "visible",
+      visibility: "pending_review",
       originalKey: photoRow.original_key,
       thumbnailUrl: null,
       previewUrl: null,
