@@ -7,6 +7,7 @@ import { createSignedPhotoUploadUrl } from "@/server/r2";
 import { createOriginalPhotoKey } from "@/server/storage-paths";
 import { validateUploadBatch } from "@/server/upload-policy";
 import { logger } from "@/server/logger";
+import * as Sentry from "@sentry/nextjs";
 import type {
   UploadReservation,
   UploadReservationRequest,
@@ -182,6 +183,7 @@ export async function POST(request: Request) {
     await client.query("commit");
   } catch (error) {
     await client.query("rollback");
+    Sentry.captureException(error);
     logger.error("upload_reservation_failed", {
       event_id: body.eventId,
       participant_id: body.participantId,

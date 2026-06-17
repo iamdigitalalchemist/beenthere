@@ -5,6 +5,7 @@ import { getEventGallery } from "@/server/data";
 import { getDatabasePool } from "@/server/db";
 import { getR2ObjectBuffer } from "@/server/r2";
 import { assertPinAccessForPublicId } from "@/server/pin-guard";
+import * as Sentry from "@sentry/nextjs";
 
 type RouteProps = { params: Promise<{ eventId: string }> };
 
@@ -71,6 +72,7 @@ export async function GET(request: Request, { params }: RouteProps) {
       }
       await archive.finalize();
     } catch (error) {
+      Sentry.captureException(error);
       archive.destroy(
         error instanceof Error ? error : new Error("Download failed."),
       );

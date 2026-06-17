@@ -6,6 +6,7 @@ import { getEventGallery } from "@/server/data";
 import { getDatabasePool } from "@/server/db";
 import { getR2ObjectBuffer } from "@/server/r2";
 import { getAlbumPhotoIds } from "@/server/custom-albums";
+import * as Sentry from "@sentry/nextjs";
 import type { PhotoRecord } from "@/types/domain";
 
 type EventExportRouteProps = {
@@ -141,6 +142,7 @@ export async function GET(request: Request, { params }: EventExportRouteProps) {
 
       await archive.finalize();
     } catch (error) {
+      Sentry.captureException(error);
       archive.destroy(
         error instanceof Error ? error : new Error("Export failed."),
       );

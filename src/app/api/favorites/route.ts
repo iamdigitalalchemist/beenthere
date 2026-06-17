@@ -6,6 +6,7 @@ import {
 } from "@/server/favorites";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
 import { getActiveParticipantForSession } from "@/server/sessions";
+import * as Sentry from "@sentry/nextjs";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ photoIds });
   } catch (error) {
+    Sentry.captureException(error);
     return NextResponse.json(
       {
         error:
@@ -91,6 +93,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ photoIds });
   } catch (error) {
+    Sentry.captureException(error);
     return NextResponse.json(
       {
         error:

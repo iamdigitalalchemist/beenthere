@@ -4,6 +4,7 @@ import { assertPinAccessForEventId } from "@/server/pin-guard";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { processUploadedPhoto } from "@/server/photo-jobs";
 import { logger } from "@/server/logger";
+import * as Sentry from "@sentry/nextjs";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<{
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
       const photo = await processUploadedPhoto(photoRow.id);
       return NextResponse.json({ photo });
     } catch (err) {
+      Sentry.captureException(err, { extra: { photo_id: photoRow.id } });
       logger.error("photo_inline_processing_failed", {
         photo_id: photoRow.id,
         error: err instanceof Error ? err.message : String(err),
