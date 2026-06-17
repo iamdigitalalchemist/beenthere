@@ -370,7 +370,6 @@ export async function getEventGallery(publicId: string) {
          on ep.id = p.event_participant_id
       where p.event_id = $1
         and p.visibility = 'visible'
-        and p.in_gallery = true
       order by p.uploaded_at desc`,
     [eventRow.id],
   );
