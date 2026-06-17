@@ -424,7 +424,7 @@ export function ModerationGrid({
   // Supabase subscription misses the Trigger.dev status update.
   useEffect(() => {
     if (!eventId) return;
-    const hasProcessing = photos.some((p) => p.status !== "ready" && !p.thumbnailUrl);
+    const hasProcessing = photos.some((p) => p.status !== "ready");
     if (!hasProcessing) return;
 
     const interval = setInterval(async () => {
