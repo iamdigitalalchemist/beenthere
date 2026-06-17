@@ -51,6 +51,7 @@ type PhotoRow = {
   event_participant_id: string;
   status: PhotoRecord["status"];
   visibility: PhotoRecord["visibility"];
+  in_gallery: boolean;
   original_key: string;
   thumbnail_key: string | null;
   preview_key: string | null;
@@ -109,6 +110,7 @@ async function mapPhotoRow(row: PhotoRow): Promise<PhotoRecord> {
     participantId: row.event_participant_id,
     status: row.status,
     visibility: row.visibility,
+    inGallery: row.in_gallery,
     originalKey: row.original_key,
     thumbnailUrl,
     previewUrl,
@@ -360,7 +362,7 @@ export async function getEventGallery(publicId: string) {
     PhotoRow & { participant_display_name: string | null }
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
-            p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
+            p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
             p.original_content_type, p.original_size_bytes, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
@@ -368,6 +370,7 @@ export async function getEventGallery(publicId: string) {
          on ep.id = p.event_participant_id
       where p.event_id = $1
         and p.visibility = 'visible'
+        and p.in_gallery = true
       order by p.uploaded_at desc`,
     [eventRow.id],
   );
@@ -411,14 +414,14 @@ export async function getEventPhotos(eventId: string) {
     PhotoRow & { participant_display_name: string | null }
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
-            p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
+            p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
             p.original_content_type, p.original_size_bytes, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
        left join beenthere.event_participants ep
          on ep.id = p.event_participant_id
       where p.event_id = $1
-        and p.visibility = 'visible'
+        and p.visibility <> 'deleted'
       order by p.uploaded_at desc`,
     [eventId],
   );
@@ -536,7 +539,7 @@ export async function getSlideshowEvent(publicId: string) {
 
 export async function setPhotoVisibility(input: {
   photoId: string;
-  visibility: Extract<PhotoVisibility, "visible" | "pending_review" | "hidden" | "deleted">;
+  visibility: Extract<PhotoVisibility, "visible" | "hidden" | "deleted">;
 }) {
   const pool = getDatabasePool();
 
@@ -547,7 +550,8 @@ export async function setPhotoVisibility(input: {
   const { rows } = await pool.query<{ id: string; event_id: string; original_size_bytes: string }>(
     `update beenthere.photos
         set visibility = $2::beenthere.photo_visibility,
-            deleted_at = case when $2::beenthere.photo_visibility = 'deleted' then now() else null end
+            deleted_at = case when $2::beenthere.photo_visibility = 'deleted' then now() else null end,
+            in_gallery = case when $2::beenthere.photo_visibility in ('hidden', 'deleted') then false else in_gallery end
       where id = $1
         and visibility <> 'deleted'
       returning id, event_id, original_size_bytes`,

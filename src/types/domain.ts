@@ -83,6 +83,7 @@ export type PhotoRecord = {
   participantId: string;
   status: PhotoStatus;
   visibility: PhotoVisibility;
+  inGallery: boolean;
   originalKey: string;
   thumbnailUrl: string;
   previewUrl: string;

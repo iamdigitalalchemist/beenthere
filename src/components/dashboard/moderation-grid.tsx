@@ -21,8 +21,8 @@ type ModerationGridProps = {
   eventId?: string;
 };
 
-type VisibilityFilter = "all" | "gallery" | "pending" | "hidden" | "reported";
-type ModerationAction = Extract<PhotoVisibility, "visible" | "pending_review" | "hidden" | "deleted">;
+type VisibilityFilter = "all" | "visible" | "hidden" | "gallery" | "reported";
+type ModerationAction = Extract<PhotoVisibility, "visible" | "hidden" | "deleted">;
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -113,6 +113,12 @@ const badgeStyles: Record<string, string> = {
   reported: "bg-red-100 text-red-800",
   pending_review: "bg-black/5 text-ink-muted",
 };
+
+function galleryBadge(inGallery: boolean) {
+  return inGallery
+    ? "bg-accent/10 text-accent"
+    : "bg-black/5 text-ink-muted";
+}
 
 // ─── Add-to-album sheet ──────────────────────────────────────────────────────
 
@@ -409,6 +415,40 @@ export function ModerationGrid({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
+
+  async function toggleGallery(photoId: string, inGallery: boolean) {
+    setPhotos((current) =>
+      current.map((p) => p.id === photoId ? { ...p, inGallery } : p),
+    );
+    const res = await fetch(`/api/photos/${photoId}/gallery`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inGallery }),
+    });
+    if (!res.ok) {
+      setPhotos((current) =>
+        current.map((p) => p.id === photoId ? { ...p, inGallery: !inGallery } : p),
+      );
+    }
+  }
+
+  async function bulkToggleGallery(inGallery: boolean) {
+    if (!selectedIds.size) return;
+    setBulkWorking(true);
+    const ids = Array.from(selectedIds);
+    setPhotos((current) =>
+      current.map((p) => selectedIds.has(p.id) ? { ...p, inGallery } : p),
+    );
+    await Promise.all(ids.map((id) =>
+      fetch(`/api/photos/${id}/gallery`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inGallery }),
+      }),
+    ));
+    setBulkWorking(false);
+    exitSelectMode();
+  }
   useEffect(() => {
     if (!eventId) return;
     const supabase = getSupabaseBrowserClient();
@@ -470,8 +510,8 @@ export function ModerationGrid({
     [photos],
   );
 
-  const pendingCount = useMemo(
-    () => photos.filter((p) => p.visibility === "pending_review").length,
+  const galleryCount = useMemo(
+    () => photos.filter((p) => p.inGallery).length,
     [photos],
   );
 
@@ -497,10 +537,10 @@ export function ModerationGrid({
 
   const filteredPhotos = useMemo(() => {
     return photos.filter((photo) => {
-      if (visibilityFilter === "gallery" && photo.visibility !== "visible") return false;
-      if (visibilityFilter === "pending" && photo.visibility !== "pending_review") return false;
+      if (visibilityFilter === "visible" && photo.visibility !== "visible") return false;
       if (visibilityFilter === "hidden" && photo.visibility !== "hidden") return false;
       if (visibilityFilter === "reported" && photo.visibility !== "reported") return false;
+      if (visibilityFilter === "gallery" && !photo.inGallery) return false;
       if (uploaderFilter !== "all" && photo.participantId !== uploaderFilter) return false;
       if (dateFilter !== "all" && (photo.takenAt ?? photo.uploadedAt).slice(0, 10) !== dateFilter) return false;
       return true;
@@ -522,7 +562,9 @@ export function ModerationGrid({
     setPhotos((currentPhotos) =>
       visibility === "deleted"
         ? currentPhotos.filter((p) => p.id !== photoId)
-        : currentPhotos.map((p) => p.id === photoId ? { ...p, visibility } : p),
+        : currentPhotos.map((p) => p.id === photoId
+            ? { ...p, visibility, inGallery: (visibility === "hidden") ? false : p.inGallery }
+            : p),
     );
 
     const response = await fetch(`/api/photos/${photoId}`, {
@@ -696,9 +738,9 @@ export function ModerationGrid({
           <div className="flex gap-1 rounded-2xl bg-black/5 p-1 sm:w-fit">
             {([
               { id: "all", label: "All" },
-              { id: "gallery", label: "Gallery" },
-              { id: "pending", label: "Pending" },
+              { id: "visible", label: "Visible" },
               { id: "hidden", label: "Hidden" },
+              { id: "gallery", label: "Gallery" },
               { id: "reported", label: "Reported" },
             ] as { id: VisibilityFilter; label: string }[]).map(({ id, label }) => (
               <button
@@ -717,9 +759,9 @@ export function ModerationGrid({
                     {reportedCount}
                   </span>
                 )}
-                {id === "pending" && pendingCount > 0 && (
-                  <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                    {pendingCount}
+                {id === "gallery" && (
+                  <span className="ml-1.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-accent">
+                    {galleryCount}
                   </span>
                 )}
               </button>
@@ -815,21 +857,31 @@ export function ModerationGrid({
                       <>
                         {photo.visibility === "visible" ? (
                           <button
-                            className="grid size-7 place-items-center rounded-full bg-emerald-500 text-white shadow backdrop-blur-sm transition hover:bg-emerald-600 active:scale-95"
-                            onClick={() => void updateVisibility(photo.id, "pending_review")}
-                            title="Remove from gallery"
+                            className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
+                            onClick={() => void updateVisibility(photo.id, "hidden")}
+                            title="Hide"
                             type="button"
                           >
-                            <IconGalleryRemove />
+                            <IconEyeOff />
                           </button>
                         ) : (
                           <button
                             className="grid size-7 place-items-center rounded-full bg-black/60 text-white shadow backdrop-blur-sm transition hover:bg-black/80 active:scale-95"
                             onClick={() => void updateVisibility(photo.id, "visible")}
-                            title="Add to gallery"
+                            title={isReported ? "Approve" : "Unhide"}
                             type="button"
                           >
-                            <IconGalleryAdd />
+                            {isReported ? <IconCheck /> : <IconEye />}
+                          </button>
+                        )}
+                        {photo.visibility === "visible" && (
+                          <button
+                            className={`grid size-7 place-items-center rounded-full shadow backdrop-blur-sm transition active:scale-95 ${photo.inGallery ? "bg-accent text-white hover:bg-accent/80" : "bg-black/60 text-white hover:bg-black/80"}`}
+                            onClick={() => void toggleGallery(photo.id, !photo.inGallery)}
+                            title={photo.inGallery ? "Remove from gallery" : "Add to gallery"}
+                            type="button"
+                          >
+                            {photo.inGallery ? <IconGalleryRemove /> : <IconGalleryAdd />}
                           </button>
                         )}
                         <button
@@ -872,9 +924,16 @@ export function ModerationGrid({
                       {(photo.takenAt ?? photo.uploadedAt).slice(0, 10)} · {photo.status}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${badgeStyles[photo.visibility] ?? badgeStyles.visible}`}>
-                    {photo.visibility === "visible" ? "In gallery" : photo.visibility === "pending_review" ? "Pending" : photo.visibility}
-                  </span>
+                  <div className="flex gap-1">
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${badgeStyles[photo.visibility] ?? badgeStyles.visible}`}>
+                      {photo.visibility}
+                    </span>
+                    {photo.inGallery && (
+                      <span className="shrink-0 rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-bold text-accent">
+                        Gallery
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {report && (
@@ -909,23 +968,36 @@ export function ModerationGrid({
                   <div className="flex items-center gap-1.5">
                     {photo.visibility === "visible" ? (
                       <button
-                        className="grid size-9 place-items-center rounded-full bg-emerald-500 text-white transition hover:bg-emerald-600 active:scale-95"
-                        onClick={() => void updateVisibility(photo.id, "pending_review")}
-                        title="Remove from gallery"
+                        className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
+                        onClick={() => void updateVisibility(photo.id, "hidden")}
+                        title="Hide"
                         type="button"
                       >
-                        <IconGalleryRemove />
+                        <IconEyeOff />
                       </button>
                     ) : (
                       <button
                         className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "visible")}
-                        title="Add to gallery"
+                        title={isReported ? "Approve" : "Unhide"}
                         type="button"
                       >
-                        <IconGalleryAdd />
+                        {isReported ? <IconCheck /> : <IconEye />}
                       </button>
                     )}
+                    <button
+                      className={`grid size-9 place-items-center rounded-full border transition active:scale-95 ${
+                        photo.inGallery
+                          ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
+                          : "border-black/10 bg-black/5 text-ink-muted hover:text-accent hover:border-accent/40"
+                      } ${photo.visibility !== "visible" ? "cursor-not-allowed opacity-30" : ""}`}
+                      disabled={photo.visibility !== "visible"}
+                      onClick={() => void toggleGallery(photo.id, !photo.inGallery)}
+                      title={photo.inGallery ? "Remove from gallery" : "Add to gallery"}
+                      type="button"
+                    >
+                      {photo.inGallery ? <IconGalleryRemove /> : <IconGalleryAdd />}
+                    </button>
                     <button
                       className="grid size-9 place-items-center rounded-full border border-red-100 text-red-500 transition hover:bg-red-50 active:scale-95"
                       onClick={() => setConfirmingDeleteId(photo.id)}
@@ -1033,9 +1105,27 @@ export function ModerationGrid({
               {selectedIds.size} selected
             </span>
             <button
-              className="grid size-9 place-items-center rounded-full bg-emerald-500/80 text-white transition hover:bg-emerald-500 active:scale-95 disabled:opacity-50"
+              className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
               disabled={bulkWorking}
               onClick={() => void bulkUpdateVisibility("visible")}
+              title="Show all"
+              type="button"
+            >
+              <IconEye />
+            </button>
+            <button
+              className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
+              disabled={bulkWorking}
+              onClick={() => void bulkUpdateVisibility("hidden")}
+              title="Hide all"
+              type="button"
+            >
+              <IconEyeOff />
+            </button>
+            <button
+              className="grid size-9 place-items-center rounded-full bg-accent/80 text-white transition hover:bg-accent active:scale-95 disabled:opacity-50"
+              disabled={bulkWorking}
+              onClick={() => void bulkToggleGallery(true)}
               title="Add all to gallery"
               type="button"
             >
@@ -1044,7 +1134,7 @@ export function ModerationGrid({
             <button
               className="grid size-9 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
               disabled={bulkWorking}
-              onClick={() => void bulkUpdateVisibility("pending_review")}
+              onClick={() => void bulkToggleGallery(false)}
               title="Remove all from gallery"
               type="button"
             >

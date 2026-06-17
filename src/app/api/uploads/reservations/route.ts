@@ -158,7 +158,7 @@ export async function POST(request: Request) {
             id, event_id, event_participant_id, status, visibility, original_key,
             original_file_name, original_content_type, original_size_bytes
           )
-          values ($1, $2, $3, 'uploading', 'pending_review', $4, $5, $6, $7)`,
+          values ($1, $2, $3, 'uploading', 'visible', $4, $5, $6, $7)`,
         [
           reservation.photoId,
           body.eventId,

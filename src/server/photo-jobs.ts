@@ -90,6 +90,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
       event_participant_id: string;
       status: PhotoRecord["status"];
       visibility: PhotoRecord["visibility"];
+      in_gallery: boolean;
       original_key: string;
       original_file_name: string;
       original_content_type: string;
@@ -106,7 +107,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
             width = $4,
             height = $5
       where id = $1
-      returning id, event_id, event_participant_id, status, visibility,
+      returning id, event_id, event_participant_id, status, visibility, in_gallery,
                 original_key, original_file_name, original_content_type,
                 original_size_bytes, width, height, uploaded_at, taken_at`,
     [photoId, thumbnailKey, previewKey, derivatives.width, derivatives.height],
@@ -136,6 +137,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
     participantId: updatedPhoto.event_participant_id,
     status: updatedPhoto.status,
     visibility: updatedPhoto.visibility,
+    inGallery: updatedPhoto.in_gallery,
     originalKey: updatedPhoto.original_key,
     thumbnailUrl,
     previewUrl,
