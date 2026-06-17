@@ -43,6 +43,7 @@ type EventRow = {
   collect_socials: boolean;
   storage_limit_bytes: number;
   storage_used_bytes: number;
+  upload_policy: EventRecord["uploadPolicy"];
 };
 
 type PhotoRow = {
@@ -95,6 +96,7 @@ function mapEventRow(row: EventRow): EventRecord {
     collectSocials: Boolean(row.collect_socials),
     storageLimitBytes: toNumber(row.storage_limit_bytes),
     storageUsedBytes: toNumber(row.storage_used_bytes),
+    uploadPolicy: row.upload_policy ?? "open",
   };
 }
 
@@ -590,7 +592,7 @@ export async function setPhotoVisibility(input: {
 const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
   template, status, plan, starts_at, ends_at, upload_closes_at,
   gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
-  storage_limit_bytes, storage_used_bytes`;
+  storage_limit_bytes, storage_used_bytes, upload_policy`;
 
 const DEFAULT_EVENT_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;
 

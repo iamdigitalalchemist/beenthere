@@ -62,8 +62,9 @@ export async function POST(request: Request) {
       id: string;
       storage_limit_bytes: number;
       storage_used_bytes: number;
+      upload_policy: "open" | "curated" | "strict";
     }>(
-    `select id, storage_limit_bytes, storage_used_bytes
+    `select id, storage_limit_bytes, storage_used_bytes, upload_policy
        from beenthere.events
       where id = $1
       limit 1`,
@@ -153,12 +154,16 @@ export async function POST(request: Request) {
         (acceptedFile) => acceptedFile.fileIndex === reservation.fileIndex,
       )!;
 
+      const policy = eventRow.upload_policy ?? "open";
+      const visibility = policy === "strict" ? "hidden" : "visible";
+      const inGallery = policy === "open";
+
       await client.query(
         `insert into beenthere.photos (
-            id, event_id, event_participant_id, status, visibility, original_key,
+            id, event_id, event_participant_id, status, visibility, in_gallery, original_key,
             original_file_name, original_content_type, original_size_bytes
           )
-          values ($1, $2, $3, 'uploading', 'visible', $4, $5, $6, $7)`,
+          values ($1, $2, $3, 'uploading', $8, $9, $4, $5, $6, $7)`,
         [
           reservation.photoId,
           body.eventId,
@@ -167,6 +172,8 @@ export async function POST(request: Request) {
           file.name,
           file.type,
           file.size,
+          visibility,
+          inGallery,
         ],
       );
 

@@ -20,6 +20,8 @@ export type PhotoReportSummary = {
 
 export type EventPlan = "draft" | "event" | "event_plus";
 
+export type UploadPolicy = "open" | "curated" | "strict";
+
 export type EventTemplate =
   | "wedding"
   | "birthday"
@@ -39,6 +41,7 @@ export type EventRecord = {
   template: EventTemplate;
   status: EventStatus;
   plan: EventPlan;
+  uploadPolicy: UploadPolicy;
   startsAt: string;
   endsAt: string;
   uploadClosesAt: string;

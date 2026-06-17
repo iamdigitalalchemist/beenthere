@@ -21,6 +21,7 @@ export const DEMO_EVENT: EventRecord = {
   collectSocials: false,
   storageLimitBytes: 25 * 1024 * 1024 * 1024,
   storageUsedBytes: 148 * 1024 * 1024,
+  uploadPolicy: "open" as const,
 };
 
 export const DEMO_PHOTOS: PhotoRecord[] = [

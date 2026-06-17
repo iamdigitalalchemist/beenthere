@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ActivateEventBanner } from "@/components/dashboard/activate-event-banner";
 import { EventPinSettings } from "@/components/dashboard/event-pin-settings";
 import { EventSocialsSettings } from "@/components/dashboard/event-socials-settings";
+import { UploadPolicySettings } from "@/components/dashboard/upload-policy-settings";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
 import { StorageCard } from "@/components/dashboard/storage-card";
@@ -253,6 +254,11 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             <EventSocialsSettings
               collectSocials={dashboard.event.collectSocials}
               eventPublicId={dashboard.event.publicId}
+            />
+
+            <UploadPolicySettings
+              eventPublicId={dashboard.event.publicId}
+              uploadPolicy={dashboard.event.uploadPolicy}
             />
 
             {/* Signage */}
