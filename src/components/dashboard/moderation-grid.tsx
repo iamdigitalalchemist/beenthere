@@ -107,11 +107,11 @@ function IconGalleryRemove() {
   );
 }
 
-const badgeStyles: Record<string, string> = {
-  visible: "bg-emerald-100 text-emerald-800",
-  hidden: "bg-amber-100 text-amber-800",
-  reported: "bg-red-100 text-red-800",
-  pending_review: "bg-black/5 text-ink-muted",
+const badgeStyles: Record<string, React.CSSProperties> = {
+  visible:        { background: "rgba(86,216,146,.15)",  color: "#56D892", border: "1px solid rgba(86,216,146,.20)" },
+  hidden:         { background: "rgba(255,190,85,.12)",  color: "#FFBE55", border: "1px solid rgba(255,190,85,.18)" },
+  reported:       { background: "rgba(255,95,123,.12)",  color: "#FF8FA3", border: "1px solid rgba(255,95,123,.18)" },
+  pending_review: { background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.40)", border: "1px solid rgba(255,255,255,.08)" },
 };
 
 function galleryBadge(inGallery: boolean) {
@@ -644,12 +644,14 @@ export function ModerationGrid({
         <div className="flex flex-wrap gap-2">
           {uploaderOptions.length > 1 && (
             <select
-              className={`rounded-2xl border px-4 py-2 text-sm font-semibold text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 ${
-                uploaderFilter !== "all"
-                  ? "border-accent bg-accent/5 text-accent"
-                  : "border-black/10 bg-white"
-              }`}
+              className="rounded-2xl px-4 py-2 text-sm font-semibold outline-none transition"
               onChange={(e) => setUploaderFilter(e.target.value)}
+              style={{
+                background: uploaderFilter !== "all" ? "rgba(224,182,255,.12)" : "rgba(255,255,255,.06)",
+                border: uploaderFilter !== "all" ? "1px solid rgba(224,182,255,.25)" : "1px solid rgba(255,255,255,.10)",
+                color: uploaderFilter !== "all" ? "#e0b6ff" : "rgba(255,255,255,.70)",
+                colorScheme: "dark",
+              }}
               value={uploaderFilter}
             >
               <option value="all">All guests</option>
@@ -661,12 +663,14 @@ export function ModerationGrid({
 
           {dateOptions.length > 1 && (
             <select
-              className={`rounded-2xl border px-4 py-2 text-sm font-semibold text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 ${
-                dateFilter !== "all"
-                  ? "border-accent bg-accent/5 text-accent"
-                  : "border-black/10 bg-white"
-              }`}
+              className="rounded-2xl px-4 py-2 text-sm font-semibold outline-none transition"
               onChange={(e) => setDateFilter(e.target.value)}
+              style={{
+                background: dateFilter !== "all" ? "rgba(224,182,255,.12)" : "rgba(255,255,255,.06)",
+                border: dateFilter !== "all" ? "1px solid rgba(224,182,255,.25)" : "1px solid rgba(255,255,255,.10)",
+                color: dateFilter !== "all" ? "#e0b6ff" : "rgba(255,255,255,.70)",
+                colorScheme: "dark",
+              }}
               value={dateFilter}
             >
               <option value="all">All dates</option>
@@ -680,8 +684,9 @@ export function ModerationGrid({
 
           {activeFilterCount > 0 && (
             <button
-              className="rounded-2xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink-muted transition hover:text-red-500 active:scale-95"
+              className="rounded-2xl px-4 py-2 text-sm font-semibold transition active:scale-95"
               onClick={clearFilters}
+              style={{ background: "rgba(255,95,123,.10)", border: "1px solid rgba(255,95,123,.15)", color: "#FF8FA3" }}
               type="button"
             >
               Clear filters ×
@@ -691,88 +696,100 @@ export function ModerationGrid({
 
         {/* Visibility pills + size toggle row */}
         <div className="space-y-2">
-          {/* Top row: status message / select controls + Select button + ViewSizeToggle */}
+          {/* Top row: pills left, ViewSizeToggle (desktop) + Select right */}
           <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0 flex items-center gap-3">
-              {selectMode ? (
+            {/* Left: filter pills or select-mode controls */}
+            {selectMode ? (
+              <div className="flex items-center gap-3 min-w-0">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>
+                  <input
+                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                    className="size-4 accent-accent"
+                    onChange={toggleSelectAll}
+                    type="checkbox"
+                  />
+                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                </label>
+                <button
+                  className="text-sm font-semibold transition active:scale-95"
+                  onClick={exitSelectMode}
+                  style={{ color: "rgba(255,255,255,.40)" }}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+                <div className="flex gap-1 rounded-2xl p-1 w-max sm:w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
+                  {([
+                    { id: "all", label: "All" },
+                    { id: "visible", label: "Visible" },
+                    { id: "hidden", label: "Hidden" },
+                    { id: "gallery", label: "Gallery" },
+                    { id: "reported", label: "Reported" },
+                  ] as { id: VisibilityFilter; label: string }[]).map(({ id, label }) => (
+                    <button
+                      className="rounded-xl px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition active:scale-95"
+                      key={id}
+                      onClick={() => setVisibilityFilter(id)}
+                      style={visibilityFilter === id
+                        ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
+                        : { color: "rgba(255,255,255,.40)" }
+                      }
+                      type="button"
+                    >
+                      {label}
+                      {id === "reported" && reportedCount > 0 && (
+                        <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {reportedCount}
+                        </span>
+                      )}
+                      {id === "gallery" && (
+                        <span className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold" style={{ background: "rgba(224,182,255,.15)", color: "#e0b6ff" }}>
+                          {galleryCount}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Right: ViewSizeToggle (desktop) + Select button */}
+            <div className="flex shrink-0 items-center gap-1.5">
+              {!selectMode && (
                 <>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
-                    <input
-                      checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
-                      className="size-4 accent-accent"
-                      onChange={toggleSelectAll}
-                      type="checkbox"
-                    />
-                    {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-                  </label>
+                  <div className="hidden sm:block">
+                    <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+                  </div>
                   <button
-                    className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
-                    onClick={exitSelectMode}
+                    className="flex size-8 items-center justify-center rounded-lg transition active:scale-95 sm:hidden"
+                    onClick={() => changeViewSize(viewSize === "compact" ? "medium" : viewSize === "medium" ? "large" : "compact")}
+                    style={{ background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.55)" }}
+                    title="Change grid size"
                     type="button"
                   >
-                    Cancel
+                    {viewSize === "compact" ? (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14"><rect height="4" rx="0.75" width="4" x="1" y="1"/><rect height="4" rx="0.75" width="4" x="6" y="1"/><rect height="4" rx="0.75" width="4" x="11" y="1"/><rect height="4" rx="0.75" width="4" x="1" y="6"/><rect height="4" rx="0.75" width="4" x="6" y="6"/><rect height="4" rx="0.75" width="4" x="11" y="6"/><rect height="4" rx="0.75" width="4" x="1" y="11"/><rect height="4" rx="0.75" width="4" x="6" y="11"/><rect height="4" rx="0.75" width="4" x="11" y="11"/></svg>
+                    ) : viewSize === "medium" ? (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14"><rect height="6.5" rx="1" width="6.5" x="1" y="1"/><rect height="6.5" rx="1" width="6.5" x="8.5" y="1"/><rect height="6.5" rx="1" width="6.5" x="1" y="8.5"/><rect height="6.5" rx="1" width="6.5" x="8.5" y="8.5"/></svg>
+                    ) : (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14"><rect height="6.5" rx="1.5" width="14" x="1" y="1"/><rect height="6.5" rx="1.5" width="14" x="1" y="8.5"/></svg>
+                    )}
                   </button>
                 </>
-              ) : (
-                <p className="truncate text-sm text-ink-muted">
-                  {message}
-                  {activeFilterCount > 0 && (
-                    <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-semibold text-accent">
-                      {filteredPhotos.length} shown
-                    </span>
-                  )}
-                </p>
               )}
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
               <button
-                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
-                  selectMode
-                    ? "border-accent bg-accent/10 text-accent"
-                    : "border-black/10 bg-white text-ink hover:bg-black/5"
-                }`}
+                className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
                 onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+                style={selectMode
+                  ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
+                  : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
+                }
                 type="button"
               >
                 Select
               </button>
-              <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
-            </div>
-          </div>
-
-          {/* Bottom row: scrollable visibility filter pills */}
-          <div className="-mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-            <div className="flex gap-1 rounded-2xl bg-black/5 p-1 w-max sm:w-fit">
-            {([
-              { id: "all", label: "All" },
-              { id: "visible", label: "Visible" },
-              { id: "hidden", label: "Hidden" },
-              { id: "gallery", label: "Gallery" },
-              { id: "reported", label: "Reported" },
-            ] as { id: VisibilityFilter; label: string }[]).map(({ id, label }) => (
-              <button
-                className={`rounded-xl px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition active:scale-95 ${
-                  visibilityFilter === id
-                    ? "bg-white text-ink shadow-sm"
-                    : "text-ink-muted hover:text-ink"
-                }`}
-                key={id}
-                onClick={() => setVisibilityFilter(id)}
-                type="button"
-              >
-                {label}
-                {id === "reported" && reportedCount > 0 && (
-                  <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                    {reportedCount}
-                  </span>
-                )}
-                {id === "gallery" && (
-                  <span className="ml-1.5 rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-accent">
-                    {galleryCount}
-                  </span>
-                )}
-              </button>
-            ))}
             </div>
           </div>
         </div>
@@ -793,14 +810,18 @@ export function ModerationGrid({
 
           return (
             <article
-              className={`overflow-hidden bg-white shadow-sm ring-2 transition ${
-                isSelected
-                  ? "ring-accent"
-                  : isReported
-                    ? "ring-red-200"
-                    : "ring-black/5"
-              } ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
+              className={`overflow-hidden transition ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
               key={photo.id}
+              style={{
+                background: "rgba(255,255,255,.04)",
+                border: isSelected
+                  ? "2px solid #e0b6ff"
+                  : isReported
+                    ? "2px solid rgba(255,95,123,.30)"
+                    : "1px solid rgba(255,255,255,.08)",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 4px 16px rgba(0,0,0,.24)",
+              }}
             >
               <div className="relative">
                 {selectMode && (
@@ -926,17 +947,23 @@ export function ModerationGrid({
               {viewSize === "compact" ? null : <div className="space-y-3 p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{uploaderName}</p>
-                    <p className="text-[11px] text-ink-muted capitalize">
+                    <p className="truncate text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>{uploaderName}</p>
+                    <p className="text-[11px] capitalize" style={{ color: "rgba(255,255,255,.35)" }}>
                       {(photo.takenAt ?? photo.uploadedAt).slice(0, 10)} · {photo.status}
                     </p>
                   </div>
                   <div className="flex gap-1">
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize ${badgeStyles[photo.visibility] ?? badgeStyles.visible}`}>
+                    <span
+                      className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize"
+                      style={badgeStyles[photo.visibility] ?? badgeStyles.visible}
+                    >
                       {photo.visibility}
                     </span>
                     {photo.inGallery && (
-                      <span className="shrink-0 rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-bold text-accent">
+                      <span
+                        className="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold"
+                        style={{ background: "rgba(224,182,255,.12)", color: "#e0b6ff", border: "1px solid rgba(224,182,255,.18)" }}
+                      >
                         Gallery
                       </span>
                     )}
@@ -944,10 +971,13 @@ export function ModerationGrid({
                 </div>
 
                 {report && (
-                  <div className="rounded-2xl bg-red-50 px-3 py-2.5 text-xs text-red-800">
+                  <div
+                    className="rounded-2xl px-3 py-2.5 text-xs"
+                    style={{ background: "rgba(255,95,123,.10)", border: "1px solid rgba(255,95,123,.18)", color: "#FF8FA3" }}
+                  >
                     <p className="font-bold">{report.count} {report.count === 1 ? "report" : "reports"}</p>
                     {report.reasons.length > 0 && (
-                      <ul className="mt-1 list-inside list-disc space-y-0.5 text-red-700">
+                      <ul className="mt-1 list-inside list-disc space-y-0.5" style={{ color: "rgba(255,143,163,.80)" }}>
                         {report.reasons.slice(0, 3).map((reason, i) => <li key={i}>{reason}</li>)}
                       </ul>
                     )}
@@ -957,15 +987,17 @@ export function ModerationGrid({
                 {confirmingDeleteId === photo.id ? (
                   <div className="flex gap-2">
                     <button
-                      className="flex-1 rounded-full bg-red-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-600 active:scale-95"
+                      className="flex-1 rounded-full px-3 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                       onClick={() => void updateVisibility(photo.id, "deleted")}
+                      style={{ background: "#FF5F7B" }}
                       type="button"
                     >
                       Confirm delete
                     </button>
                     <button
-                      className="flex-1 rounded-full border border-black/10 bg-black/5 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+                      className="flex-1 rounded-full px-3 py-2 text-sm font-semibold transition active:scale-95"
                       onClick={() => setConfirmingDeleteId(null)}
+                      style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }}
                       type="button"
                     >
                       Cancel
@@ -975,8 +1007,9 @@ export function ModerationGrid({
                   <div className="flex items-center gap-1.5">
                     {photo.visibility === "visible" ? (
                       <button
-                        className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full text-white transition hover:brightness-110 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "hidden")}
+                        style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
                         title="Hide"
                         type="button"
                       >
@@ -984,8 +1017,9 @@ export function ModerationGrid({
                       </button>
                     ) : (
                       <button
-                        className="grid size-9 place-items-center rounded-full bg-ink text-white transition hover:bg-ink/80 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full text-white transition hover:brightness-110 active:scale-95"
                         onClick={() => void updateVisibility(photo.id, "visible")}
+                        style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
                         title={isReported ? "Approve" : "Unhide"}
                         type="button"
                       >
@@ -993,20 +1027,21 @@ export function ModerationGrid({
                       </button>
                     )}
                     <button
-                      className={`grid size-9 place-items-center rounded-full border transition active:scale-95 ${
-                        photo.inGallery
-                          ? "border-accent bg-accent/10 text-accent hover:bg-accent/20"
-                          : "border-black/10 bg-black/5 text-ink-muted hover:text-accent hover:border-accent/40"
-                      } ${photo.visibility !== "visible" ? "cursor-not-allowed opacity-30" : ""}`}
+                      className={`grid size-9 place-items-center rounded-full transition active:scale-95 ${photo.visibility !== "visible" ? "cursor-not-allowed opacity-30" : ""}`}
                       disabled={photo.visibility !== "visible"}
                       onClick={() => void toggleGallery(photo.id, !photo.inGallery)}
+                      style={photo.inGallery
+                        ? { background: "rgba(224,182,255,.15)", border: "1px solid rgba(224,182,255,.25)", color: "#e0b6ff" }
+                        : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.50)" }
+                      }
                       title={photo.inGallery ? "Remove from gallery" : "Add to gallery"}
                       type="button"
                     >
                       {photo.inGallery ? <IconGalleryRemove /> : <IconGalleryAdd />}
                     </button>
                     <button
-                      className="grid size-9 place-items-center rounded-full border border-red-100 text-red-500 transition hover:bg-red-50 active:scale-95"
+                      className="grid size-9 place-items-center rounded-full transition active:scale-95"
+                      style={{ background: "rgba(255,95,123,.10)", border: "1px solid rgba(255,95,123,.18)", color: "#FF8FA3" }}
                       onClick={() => setConfirmingDeleteId(photo.id)}
                       title="Delete"
                       type="button"
@@ -1015,8 +1050,9 @@ export function ModerationGrid({
                     </button>
                     {customAlbums && eventPublicId && (
                       <button
-                        className="grid size-9 place-items-center rounded-full border border-black/10 bg-black/5 text-ink transition hover:bg-black/10 active:scale-95"
+                        className="grid size-9 place-items-center rounded-full transition active:scale-95"
                         onClick={() => setAddToAlbumPhotoId(photo.id)}
+                        style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.60)" }}
                         title="Add to album"
                         type="button"
                       >
@@ -1024,8 +1060,9 @@ export function ModerationGrid({
                       </button>
                     )}
                     <button
-                      className="grid size-9 place-items-center rounded-full border border-black/10 bg-black/5 text-ink transition hover:bg-black/10 active:scale-95"
+                      className="grid size-9 place-items-center rounded-full transition active:scale-95"
                       onClick={() => setSharingPhotoId(photo.id)}
+                      style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.60)" }}
                       title="Share"
                       type="button"
                     >
@@ -1040,17 +1077,21 @@ export function ModerationGrid({
       </div>
 
       {filteredPhotos.length === 0 && (
-        <div className="mt-8 rounded-3xl border-2 border-dashed border-black/10 bg-white p-12 text-center">
-          <p className="font-semibold text-ink">No photos match</p>
-          <p className="mt-1 text-sm text-ink-muted">
+        <div
+          className="mt-8 rounded-3xl p-12 text-center"
+          style={{ border: "1px dashed rgba(255,255,255,.10)", background: "rgba(255,255,255,.02)" }}
+        >
+          <p className="font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>No photos match</p>
+          <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
             {activeFilterCount > 0 || visibilityFilter !== "all"
               ? "Try clearing the filters above."
               : "No photos in this view yet."}
           </p>
           {(activeFilterCount > 0 || visibilityFilter !== "all") && (
             <button
-              className="mt-3 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95"
+              className="mt-3 rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95"
               onClick={clearFilters}
+              style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.60)" }}
               type="button"
             >
               Clear all filters
