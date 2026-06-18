@@ -425,6 +425,8 @@ export function ModerationGrid({
   const pillButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressMoved = useRef(false);
 
   async function toggleGallery(photoId: string, inGallery: boolean) {
     setPhotos((current) =>
@@ -853,6 +855,19 @@ export function ModerationGrid({
             <article
               className={`overflow-hidden transition ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
               key={photo.id}
+              onPointerCancel={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+              onPointerDown={() => {
+                if (selectMode) return;
+                longPressMoved.current = false;
+                longPressTimer.current = setTimeout(() => {
+                  if (!longPressMoved.current) {
+                    setSelectMode(true);
+                    setSelectedIds(new Set([photo.id]));
+                  }
+                }, 500);
+              }}
+              onPointerMove={() => { longPressMoved.current = true; if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+              onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
               style={{
                 background: "rgba(255,255,255,.04)",
                 border: isSelected

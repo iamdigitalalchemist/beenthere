@@ -33,6 +33,7 @@ import {
   type StoredParticipant,
 } from "@/lib/participant-storage";
 import { SegmentedControl } from "@/components/segmented-control";
+import { useLongPress } from "@/lib/use-long-press";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getInitials } from "@/lib/ui";
@@ -228,6 +229,8 @@ export function GalleryExperience({
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const photoIdsRef = useRef(new Set(initialPhotos.map((photo) => photo.id)));
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressMoved = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const masonryRef = useRef<HTMLDivElement>(null);
   // Keep 0 on server and first client render so row spans match during hydration.
@@ -1364,6 +1367,19 @@ export function GalleryExperience({
                 <article
                   className={`gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl bg-black/5 shadow-sm transition ${isSelected ? "ring-2 ring-accent ring-offset-1" : ""}`}
                   key={photo.id}
+                  onPointerCancel={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                  onPointerDown={() => {
+                    if (selectMode) return;
+                    longPressMoved.current = false;
+                    longPressTimer.current = setTimeout(() => {
+                      if (!longPressMoved.current) {
+                        setSelectMode(true);
+                        setSelectedIds(new Set([photo.id]));
+                      }
+                    }, 500);
+                  }}
+                  onPointerMove={() => { longPressMoved.current = true; if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+                  onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
                   style={{
                     animationDelay: `${Math.min(index, 14) * 35}ms`,
                     gridRowEnd: `span ${getGalleryRowSpan(photo, masonryWidth, viewSize)}`,
