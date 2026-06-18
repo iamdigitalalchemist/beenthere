@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import { SlidingTabBar } from "@/components/sliding-tab-bar";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
 import type { CustomAlbum, PhotoRecord, PhotoReportSummary, SmartAlbum } from "@/types/domain";
@@ -28,24 +28,13 @@ export function PhotosTabHeader({
     <div>
       {/* Sub-toggle row + Select button */}
       <div className="mb-6 flex items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-2xl p-1 w-fit overflow-x-auto" style={{ background: "rgba(255,255,255,.06)" }}>
-          {[
-            { id: "all", label: "All photos" },
-            { id: "albums", label: "Albums" },
-          ].map((v) => (
-            <Link
-              className="rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition active:scale-95"
-              href={`${base}?tab=photos&view=${v.id}`}
-              key={v.id}
-              style={view === v.id
-                ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                : { color: "rgba(255,255,255,.40)" }
-              }
-            >
-              {v.label}
-            </Link>
-          ))}
-        </div>
+        <SlidingTabBar
+          activeId={view}
+          tabs={[
+            { id: "all", label: "All photos", href: `${base}?tab=photos&view=all` },
+            { id: "albums", label: "Albums", href: `${base}?tab=photos&view=albums` },
+          ]}
+        />
 
         {view === "all" && (
           <button

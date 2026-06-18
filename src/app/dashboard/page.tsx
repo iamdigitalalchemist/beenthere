@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SlidingTabBar } from "@/components/sliding-tab-bar";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { isHostUser, requireUser } from "@/server/auth";
 import { getEventsByOwner } from "@/server/data";
@@ -119,24 +120,11 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
 
         {/* Tab bar */}
-        <div
-          className="mb-8 flex gap-1 rounded-2xl p-1 w-fit"
-          style={{ background: "rgba(255,255,255,.06)" }}
-        >
-          {tabs.map((t) => (
-            <Link
-              className="rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95"
-              href={`/dashboard?tab=${t.id}`}
-              key={t.id}
-              style={tab === t.id
-                ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                : { color: "rgba(255,255,255,.40)" }
-              }
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
+        <SlidingTabBar
+          activeId={tab}
+          className="mb-8 w-fit"
+          tabs={tabs.map((t) => ({ id: t.id, label: t.label, href: `/dashboard?tab=${t.id}` }))}
+        />
 
         {/* ══ EVENTS TAB ══ */}
         {tab === "events" && (

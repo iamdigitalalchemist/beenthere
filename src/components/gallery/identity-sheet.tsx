@@ -2,6 +2,7 @@
 
 import { FormEvent } from "react";
 import Image from "next/image";
+import { SegmentedControl } from "@/components/segmented-control";
 import { GuestRecoveryCodePanel } from "@/components/gallery/guest-recovery-code-panel";
 import { ParticipantAvatar } from "@/components/gallery/participant-avatar";
 import {
@@ -162,22 +163,15 @@ export function IdentitySheet({
         </p>
 
         {isSignUp ? (
-          <div className="mt-5 flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
-            {(["signup", "code"] as const).map((mode) => (
-              <button
-                className="min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
-                key={mode}
-                onClick={() => onIdentityModeChange(mode)}
-                style={identityMode === mode
-                  ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
-                  : { color: "rgba(255,255,255,.40)" }
-                }
-                type="button"
-              >
-                {mode === "signup" ? "New guest" : "Guest code"}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            className="mt-5 rounded-full"
+            onChange={onIdentityModeChange}
+            options={[
+              { id: "signup" as const, label: "New guest" },
+              { id: "code" as const, label: "Guest code" },
+            ]}
+            value={identityMode}
+          />
         ) : null}
 
         {errorMessage ? (

@@ -32,6 +32,7 @@ import {
   storeRecoveryCodeMapping,
   type StoredParticipant,
 } from "@/lib/participant-storage";
+import { SegmentedControl } from "@/components/segmented-control";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getInitials } from "@/lib/ui";
@@ -1233,29 +1234,12 @@ export function GalleryExperience({
                 </button>
               </div>
             ) : (
-              <fieldset className="flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
-                <legend className="sr-only">Filter photos</legend>
-                {FILTER_OPTIONS.map((option) => (
-                  <label
-                    className="flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
-                    key={option.id}
-                    style={filter === option.id
-                      ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
-                      : { color: "rgba(255,255,255,.40)" }
-                    }
-                  >
-                    <input
-                      checked={filter === option.id}
-                      className="sr-only"
-                      name="gallery-filter"
-                      onChange={() => setFilter(option.id)}
-                      type="radio"
-                      value={option.id}
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </fieldset>
+              <SegmentedControl
+                className="rounded-full"
+                onChange={setFilter}
+                options={FILTER_OPTIONS}
+                value={filter}
+              />
             )}
             {/* Right: view toggle (desktop only) + select */}
             <div className="flex shrink-0 items-center gap-1.5">

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 export type ViewSize = "compact" | "medium" | "large";
 
 type ViewSizeToggleProps = {
@@ -41,24 +43,44 @@ const SIZES: Array<{ id: ViewSize; label: string; icon: React.ReactNode }> = [
 ];
 
 export function ViewSizeToggle({ value, onChange }: ViewSizeToggleProps) {
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  useEffect(() => {
+    const idx = SIZES.findIndex((s) => s.id === value);
+    const btn = btnRefs.current[idx];
+    if (btn) setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth });
+  }, [value]);
+
   return (
     <div
       aria-label="Display size"
-      className="flex gap-0.5 rounded-xl p-0.5"
+      className="relative flex gap-0.5 rounded-xl p-0.5"
       role="group"
       style={{ background: "rgba(255,255,255,.06)" }}
     >
-      {SIZES.map((size) => (
+      {indicator.width > 0 && (
+        <div
+          className="pointer-events-none absolute top-0.5 rounded-lg"
+          style={{
+            left: indicator.left,
+            width: indicator.width,
+            height: "calc(100% - 4px)",
+            background: "rgba(255,255,255,.14)",
+            boxShadow: "0 1px 6px rgba(0,0,0,.20)",
+            transition: "left 200ms cubic-bezier(0.34,1.56,0.64,1), width 150ms ease",
+          }}
+        />
+      )}
+      {SIZES.map((size, idx) => (
         <button
           aria-label={size.label}
           aria-pressed={value === size.id}
-          className="flex size-8 items-center justify-center rounded-lg transition active:scale-95"
+          className="relative flex size-8 items-center justify-center rounded-lg transition-colors duration-150 active:scale-95"
           key={size.id}
           onClick={() => onChange(size.id)}
-          style={value === size.id
-            ? { background: "rgba(255,255,255,.14)", color: "rgba(255,255,255,.92)" }
-            : { color: "rgba(255,255,255,.35)" }
-          }
+          ref={(el) => { btnRefs.current[idx] = el; }}
+          style={{ color: value === size.id ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.35)", background: "transparent" }}
           title={size.label}
           type="button"
         >

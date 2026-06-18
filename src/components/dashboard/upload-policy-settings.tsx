@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SegmentedControl } from "@/components/segmented-control";
 import type { UploadPolicy } from "@/types/domain";
 
 const POLICIES: { value: UploadPolicy; label: string; description: string }[] = [
@@ -69,23 +70,11 @@ export function UploadPolicySettings({ eventPublicId, uploadPolicy: initialPolic
       </p>
 
       <div className="mt-5">
-        {/* Selector */}
-        <div className="flex gap-1 rounded-2xl p-1" style={{ background: "rgba(255,255,255,.06)" }}>
-          {POLICIES.map((p) => (
-            <button
-              className="flex-1 rounded-xl px-3 py-2.5 text-center transition active:scale-[0.98]"
-              key={p.value}
-              onClick={() => void save(p.value)}
-              style={policy === p.value
-                ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                : { color: "rgba(255,255,255,.35)" }
-              }
-              type="button"
-            >
-              <span className="block text-sm font-semibold">{p.label}</span>
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          onChange={(v) => void save(v as UploadPolicy)}
+          options={POLICIES.map((p) => ({ id: p.value, label: p.label }))}
+          value={policy}
+        />
 
         {/* Progress bar */}
         <div className="mt-3 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,.08)" }}>

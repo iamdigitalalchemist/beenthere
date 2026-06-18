@@ -9,6 +9,7 @@ import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
 import { PhotosTabHeader } from "@/components/dashboard/photos-tab-header";
 import { StorageCard } from "@/components/dashboard/storage-card";
+import { SlidingTabBar } from "@/components/sliding-tab-bar";
 import { getJoinPath } from "@/lib/join";
 import { canManageEvent, requireUser } from "@/server/auth";
 import { getDashboardEvent } from "@/server/data";
@@ -138,24 +139,17 @@ export default async function DashboardEventPage({ params, searchParams }: Props
 
         {/* ── Tabs ── */}
         <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-          <div className="flex gap-1 rounded-2xl p-1 w-max sm:w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
-            {tabs.map((t) => (
-              <Link
-                className="flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition active:scale-95"
-                href={`${base}?tab=${t.id}`}
-                key={t.id}
-                style={{
-                  padding: t.icon ? "8px 12px" : "8px 20px",
-                  ...(tab === t.id
-                    ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                    : { color: "rgba(255,255,255,.40)" })
-                }}
-                title={t.id === "settings" ? "Settings" : undefined}
-              >
-                {t.icon ?? t.label}
-              </Link>
-            ))}
-          </div>
+          <SlidingTabBar
+            activeId={tab}
+            className="w-max sm:w-fit"
+            tabs={tabs.map((t) => ({
+              id: t.id,
+              label: t.icon ? (
+                <span className="flex items-center justify-center" style={{ padding: "0 2px" }}>{t.icon}</span>
+              ) : t.label,
+              href: `${base}?tab=${t.id}`,
+            }))}
+          />
         </div>
 
         {/* ══ OVERVIEW TAB ══ */}
