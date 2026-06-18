@@ -34,6 +34,7 @@ body {
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: clip;
 }
 
 @keyframes gallery-photo-enter {
