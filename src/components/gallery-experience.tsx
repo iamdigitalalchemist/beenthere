@@ -1150,8 +1150,12 @@ export function GalleryExperience({
 
   return (
     <main
-      className="min-h-screen pb-28"
-      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)", color: "rgba(255,255,255,.92)" }}
+      className="min-h-screen"
+      style={{
+        background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)",
+        color: "rgba(255,255,255,.92)",
+        paddingBottom: "calc(4rem + env(safe-area-inset-bottom, 0px))",
+      }}
     >
       {/* Ambient glow */}
       <div
