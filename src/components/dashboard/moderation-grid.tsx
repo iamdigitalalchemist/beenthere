@@ -422,6 +422,8 @@ export function ModerationGrid({
   const [bulkWorking, setBulkWorking] = useState(false);
   const pillsScrollRef = useRef<HTMLDivElement>(null);
   const [pillsAtEnd, setPillsAtEnd] = useState(false);
+  const pillButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
 
   async function toggleGallery(photoId: string, inGallery: boolean) {
@@ -457,6 +459,15 @@ export function ModerationGrid({
     setBulkWorking(false);
     exitSelectMode();
   }
+  const PILL_FILTERS: VisibilityFilter[] = ["all", "visible", "hidden", "gallery", "reported"];
+
+  useEffect(() => {
+    const idx = PILL_FILTERS.indexOf(visibilityFilter);
+    const btn = pillButtonRefs.current[idx];
+    if (btn) setIndicatorStyle({ left: btn.offsetLeft, width: btn.offsetWidth });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibilityFilter]);
+
   useEffect(() => {
     if (!eventId) return;
     const supabase = getSupabaseBrowserClient();
@@ -741,22 +752,30 @@ export function ModerationGrid({
                   WebkitMaskImage: pillsAtEnd ? "none" : "linear-gradient(to right, black 70%, transparent 100%)",
                 }}
               >
-                <div className="flex gap-1 p-1 w-max sm:w-fit">
-                  {([
-                    { id: "all", label: "All" },
-                    { id: "visible", label: "Visible" },
-                    { id: "hidden", label: "Hidden" },
-                    { id: "gallery", label: "Gallery" },
-                    { id: "reported", label: "Reported" },
-                  ] as { id: VisibilityFilter; label: string }[]).map(({ id, label }) => (
+                <div className="relative flex gap-1 p-1 w-max sm:w-fit">
+                  {/* Sliding indicator */}
+                  {indicatorStyle.width > 0 && (
+                    <div
+                      className="pointer-events-none absolute top-1 rounded-xl"
+                      style={{
+                        left: indicatorStyle.left,
+                        width: indicatorStyle.width,
+                        height: "calc(100% - 8px)",
+                        background: "rgba(255,255,255,.14)",
+                        boxShadow: "0 1px 6px rgba(0,0,0,.20)",
+                        transition: "left 200ms cubic-bezier(0.34,1.56,0.64,1), width 150ms ease",
+                      }}
+                    />
+                  )}
+                  {PILL_FILTERS.map((id, idx) => {
+                    const label = id === "all" ? "All" : id === "visible" ? "Visible" : id === "hidden" ? "Hidden" : id === "gallery" ? "Gallery" : "Reported";
+                    return (
                     <button
-                      className="rounded-xl px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition active:scale-95"
+                      className="relative rounded-xl px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-150 active:scale-95"
                       key={id}
                       onClick={() => setVisibilityFilter(id)}
-                      style={visibilityFilter === id
-                        ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
-                        : { color: "rgba(255,255,255,.40)" }
-                      }
+                      ref={(el) => { pillButtonRefs.current[idx] = el; }}
+                      style={{ color: visibilityFilter === id ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.40)", background: "transparent" }}
                       type="button"
                     >
                       {label}
@@ -771,7 +790,8 @@ export function ModerationGrid({
                         </span>
                       )}
                     </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
