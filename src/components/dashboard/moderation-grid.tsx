@@ -819,10 +819,9 @@ export function ModerationGrid({
                   </button>
                 </>
               )}
-              {/* Select button only shown when no external controller */}
-              {!onExternalSelectModeChange && (
-                <button
-                  className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
+              {/* Select: always visible on sm+; hidden on mobile when externally controlled (lives in header there) */}
+              <button
+                  className={`rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${onExternalSelectModeChange ? "hidden sm:block" : ""}`}
                   onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
                   style={selectMode
                     ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
@@ -832,7 +831,6 @@ export function ModerationGrid({
                 >
                   Select
                 </button>
-              )}
             </div>
           </div>
         </div>
