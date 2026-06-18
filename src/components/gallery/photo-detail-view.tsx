@@ -416,33 +416,44 @@ export function PhotoDetailView({
   return (
     <div
       aria-modal="true"
-      className="photo-detail-overlay fixed inset-0 z-50 overflow-y-auto bg-canvas"
+      className="photo-detail-overlay fixed inset-0 z-50 overflow-y-auto"
       role="dialog"
+      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 100%)" }}
     >
       <div className="mx-auto min-h-full w-full max-w-lg px-4 pb-10 pt-4">
-        <header className="sticky top-0 z-10 mb-4 flex items-center justify-between bg-canvas/95 py-2 backdrop-blur-md">
+        <header
+          className="sticky top-0 z-10 mb-4 flex items-center justify-between py-2"
+          style={{ background: "rgba(9,9,24,.90)", backdropFilter: "blur(16px)" }}
+        >
           <button
             aria-label="Back to gallery"
-            className="tap-target flex size-11 items-center justify-center rounded-2xl bg-surface text-lg text-ink shadow-sm ring-1 ring-border transition hover:bg-accent-soft active:scale-[0.98]"
+            className="tap-target flex size-11 items-center justify-center rounded-2xl text-lg transition active:scale-[0.98]"
             onClick={onClose}
+            style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             type="button"
           >
             ←
           </button>
-          <h2 className="text-lg font-semibold text-ink">Detail Photo</h2>
+          <h2
+            className="text-base font-semibold"
+            style={{ color: "rgba(255,255,255,.80)", letterSpacing: "-0.01em" }}
+          >
+            Detail Photo
+          </h2>
           <div className="size-11" />
         </header>
 
         <div className="flex items-center gap-3">
           <ParticipantAvatar name={uploaderName} size="md" />
-          <p className="min-w-0 flex-1 text-sm text-ink-muted">
+          <p className="min-w-0 flex-1 text-sm" style={{ color: "rgba(255,255,255,.45)" }}>
             Photo by{" "}
-            <span className="font-semibold text-accent">{uploaderName}</span>
+            <span className="font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>{uploaderName}</span>
           </p>
           <button
             aria-label="Share photo"
-            className="flex size-11 items-center justify-center rounded-full bg-accent-soft text-accent transition hover:bg-accent/15"
+            className="flex size-11 items-center justify-center rounded-full transition active:scale-95"
             onClick={() => void handleShare()}
+            style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
             title="Share photo"
             type="button"
           >
@@ -527,32 +538,34 @@ export function PhotoDetailView({
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <button
-            className="tap-target inline-flex items-center gap-3 rounded-full bg-accent-soft px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-accent/15 active:scale-[0.98]"
+            className="tap-target inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98]"
             onClick={() => void handleToggleSave()}
+            style={isSaved(photo.id)
+              ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
+              : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
+            }
             type="button"
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-surface">
-              <HeartIcon
-                className={`size-4 ${isSaved(photo.id) ? "text-accent" : "text-ink-muted"}`}
-                filled={isSaved(photo.id)}
-              />
-            </span>
+            <HeartIcon
+              className="size-4"
+              filled={isSaved(photo.id)}
+            />
             {likeCount} {likeCount === 1 ? "like" : "likes"}
           </button>
           <button
-            className="tap-target inline-flex items-center gap-3 rounded-full bg-surface px-4 py-2.5 text-sm font-semibold text-ink ring-1 ring-border transition hover:bg-canvas active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
+            className="tap-target inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
             disabled={isDownloading}
             onClick={() => void handleDownload()}
+            style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", color: "white", boxShadow: "0 4px 16px rgba(205,95,255,.20)" }}
             type="button"
           >
-            <span className="flex size-8 items-center justify-center rounded-full bg-accent text-surface">
-              <DownloadIcon className="size-4" />
-            </span>
+            <DownloadIcon className="size-4" />
             {isDownloading ? "Downloading…" : "Download"}
           </button>
           <button
-            className="tap-target ml-auto text-sm font-semibold text-ink-muted underline-offset-2 transition hover:text-ink hover:underline"
+            className="tap-target ml-auto text-sm font-semibold underline-offset-2 transition hover:underline"
             onClick={() => setShowReportPanel((current) => !current)}
+            style={{ color: "rgba(255,255,255,.30)" }}
             type="button"
           >
             Report
@@ -560,46 +573,50 @@ export function PhotoDetailView({
         </div>
 
         {showReportPanel ? (
-          <div className="mt-4 rounded-2xl bg-surface p-4 ring-1 ring-border">
+          <div
+            className="mt-4 rounded-2xl p-4"
+            style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
+          >
             {reportStatus === "sent" ? (
-              <p className="text-sm font-medium text-accent">
-                Thanks — the photo was reported and hidden until the host
-                reviews it.
+              <p className="text-sm font-medium" style={{ color: "#56D892" }}>
+                Thanks — the photo was reported and hidden until the host reviews it.
               </p>
             ) : (
               <>
-                <p className="text-sm font-semibold text-ink">
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>
                   Report this photo
                 </p>
-                <p className="mt-1 text-xs text-ink-muted">
-                  It will be hidden from the gallery until the host reviews
-                  it.
+                <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,.40)" }}>
+                  It will be hidden from the gallery until the host reviews it.
                 </p>
                 <textarea
-                  className="mt-3 w-full rounded-xl bg-canvas p-3 text-sm text-ink ring-1 ring-border focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="mt-3 w-full rounded-xl p-3 text-sm outline-none transition"
                   maxLength={500}
                   onChange={(event) => setReportReason(event.target.value)}
                   placeholder="Why are you reporting this? (optional)"
                   rows={2}
+                  style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
                   value={reportReason}
                 />
                 {reportStatus === "error" ? (
-                  <p className="mt-2 text-sm font-medium text-red-600">
+                  <p className="mt-2 text-sm font-medium" style={{ color: "#FF8FA3" }}>
                     Could not send the report. Please try again.
                   </p>
                 ) : null}
                 <div className="mt-3 flex gap-2">
                   <button
-                    className="rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-60"
+                    className="rounded-full px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
                     disabled={reportStatus === "sending"}
                     onClick={() => void handleReport()}
+                    style={{ background: "#FF5F7B" }}
                     type="button"
                   >
                     {reportStatus === "sending" ? "Reporting…" : "Report photo"}
                   </button>
                   <button
-                    className="rounded-full px-4 py-2 text-sm font-semibold text-ink-muted transition hover:text-ink"
+                    className="rounded-full px-4 py-2 text-sm font-semibold transition"
                     onClick={() => setShowReportPanel(false)}
+                    style={{ color: "rgba(255,255,255,.40)" }}
                     type="button"
                   >
                     Cancel
@@ -612,10 +629,11 @@ export function PhotoDetailView({
 
         <section className="mt-8">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xl font-semibold text-ink">Tagged</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>Tagged</h3>
             <button
-              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-surface transition hover:bg-ink/90"
+              className="rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95"
               onClick={() => setShowTagPicker((current) => !current)}
+              style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
               type="button"
             >
               Tag someone
@@ -623,45 +641,47 @@ export function PhotoDetailView({
           </div>
 
           {tagMessage ? (
-            <p className="mt-3 text-sm text-accent">{tagMessage}</p>
+            <p className="mt-3 text-sm" style={{ color: "#56D892" }}>{tagMessage}</p>
           ) : null}
 
           {tags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <button
-                  className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-2 text-sm font-medium text-ink ring-1 ring-border transition hover:ring-accent/40"
+                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition"
                   key={tag.participantId}
                   onClick={() => void removeTag(tag.participantId)}
+                  style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.75)" }}
                   title="Remove tag"
                   type="button"
                 >
-                  <ParticipantAvatar
-                    name={tag.displayName}
-                    size="sm"
-                  />
+                  <ParticipantAvatar name={tag.displayName} size="sm" />
                   {tag.displayName}
-                  <span className="text-ink-muted">×</span>
+                  <span style={{ color: "rgba(255,255,255,.30)" }}>×</span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="mt-4 text-sm text-ink-muted">
+            <p className="mt-4 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
               No one tagged yet. Add guests who appear in this photo.
             </p>
           )}
 
           {showTagPicker ? (
-            <div className="mt-4 rounded-[1.5rem] bg-surface p-4 ring-1 ring-border">
+            <div
+              className="mt-4 rounded-[1.5rem] p-4"
+              style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
+            >
               {!currentParticipantId ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-ink-muted">
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,.40)" }}>
                     Join as a guest to tag people in photos.
                   </p>
                   {onRequireIdentity ? (
                     <button
-                      className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-surface transition hover:bg-accent/90"
+                      className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
                       onClick={onRequireIdentity}
+                      style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
                       type="button"
                     >
                       Add your name
@@ -669,35 +689,31 @@ export function PhotoDetailView({
                   ) : null}
                 </div>
               ) : guestsLoading ? (
-                <p className="text-sm text-ink-muted">Loading guests…</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,.35)" }}>Loading guests…</p>
               ) : guestsError ? (
-                <p className="text-sm text-accent">{guestsError}</p>
+                <p className="text-sm" style={{ color: "#FF8FA3" }}>{guestsError}</p>
               ) : availableGuests.length === 0 ? (
-                <p className="text-sm text-ink-muted">
+                <p className="text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
                   {guestOptions.length <= 1
                     ? "No other guests have joined yet. Friends need to scan the QR code and add their name first."
                     : "Everyone else from this event is already tagged."}
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-1">
                   {availableGuests.map((guest) => (
                     <li key={guest.id}>
                       <button
-                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition hover:bg-canvas disabled:opacity-60"
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition hover:bg-white/5 disabled:opacity-60"
                         disabled={taggingGuestId === guest.id}
                         onClick={() => void toggleTag(guest)}
                         type="button"
                       >
-                        <ParticipantAvatar
-                          name={guest.displayName}
-                          photoUrl={guest.profilePhotoUrl}
-                          size="sm"
-                        />
-                        <span className="text-sm font-medium text-ink">
+                        <ParticipantAvatar name={guest.displayName} photoUrl={guest.profilePhotoUrl} size="sm" />
+                        <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,.80)" }}>
                           {guest.displayName}
                         </span>
                         {taggingGuestId === guest.id ? (
-                          <span className="ml-auto text-xs text-ink-muted">
+                          <span className="ml-auto text-xs" style={{ color: "rgba(255,255,255,.35)" }}>
                             Saving…
                           </span>
                         ) : null}
@@ -712,18 +728,16 @@ export function PhotoDetailView({
 
         {relatedPhotos.length > 0 ? (
           <section className="mt-10">
-            <h3 className="text-xl font-semibold text-ink">Related Photo</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>Related</h3>
             <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
               {relatedPhotos.map((relatedPhoto) => {
-                const relatedIndex = photos.findIndex(
-                  (item) => item.id === relatedPhoto.id,
-                );
-
+                const relatedIndex = photos.findIndex((item) => item.id === relatedPhoto.id);
                 return (
                   <button
-                    className="w-36 shrink-0 overflow-hidden rounded-[1.5rem] bg-surface ring-1 ring-border transition hover:ring-accent/40"
+                    className="w-36 shrink-0 overflow-hidden rounded-[1.5rem] transition"
                     key={relatedPhoto.id}
                     onClick={() => onNavigate(relatedIndex)}
+                    style={{ border: "1px solid rgba(255,255,255,.08)" }}
                     type="button"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}

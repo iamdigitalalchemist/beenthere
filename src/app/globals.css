@@ -10,9 +10,9 @@
   --ink: #1a1d23;
   --ink-muted: #6b7280;
   --border: #e5e7eb;
-  --accent: #00bcd4;
-  --accent-hover: #00a5bb;
-  --accent-soft: #e0f7fa;
+  --accent: #e0b6ff;
+  --accent-hover: #d26cff;
+  --accent-soft: rgba(224,182,255,.12);
   --shadow-soft: 0 12px 40px rgb(0 0 0 / 8%);
 }
 

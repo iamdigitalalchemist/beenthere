@@ -1335,7 +1335,7 @@ export function GalleryExperience({
         ) : null}
       </header>
 
-      <section className="relative z-0 mx-auto w-full max-w-6xl px-5 pt-4 sm:px-6 sm:pt-5">
+      <section className="relative z-0 mx-auto w-full max-w-6xl overflow-x-hidden px-4 pt-4 sm:px-6 sm:pt-5">
 
         {uploadMessage ? (
           <p
@@ -1425,16 +1425,17 @@ export function GalleryExperience({
                   ) : null}
                   <button
                     aria-label={isSaved ? "Remove from saved" : "Save photo"}
-                    className="save-pop tap-target absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full bg-black/50 transition active:scale-95"
+                    className="save-pop absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full transition active:scale-95"
                     onClick={(clickEvent) => {
                       clickEvent.stopPropagation();
                       void toggleSaved(photo.id);
                     }}
+                    style={{ background: "rgba(0,0,0,.45)", backdropFilter: "blur(4px)" }}
                     type="button"
                   >
                     <HeartIcon
-                      className={`size-5 transition ${
-                        isSaved ? "text-accent" : "text-white"
+                      className={`size-4 transition ${
+                        isSaved ? "text-[#FF6DAE]" : "text-white"
                       }`}
                       filled={isSaved}
                     />
