@@ -13,10 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BeenThere",
+  title: "beenThere",
   description:
     "Private photo galleries for events with QR guest access and no app download.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon-white.webp",
+    apple: "/icon-white.webp",
+    shortcut: "/icon-white.webp",
+  },
 };
 
 export const viewport: Viewport = {

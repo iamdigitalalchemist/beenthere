@@ -1,16 +1,17 @@
 {
-  "name": "BeenThere",
-  "short_name": "BeenThere",
-  "description": "Private photo galleries for events.",
+  "name": "beenThere",
+  "short_name": "beenThere",
+  "description": "Private photo galleries for events with QR guest access.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0f172a",
+  "background_color": "#090918",
+  "theme_color": "#090918",
   "icons": [
     {
-      "src": "/next.svg",
+      "src": "/icon-white.webp",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/webp",
+      "purpose": "any maskable"
     }
   ]
 }

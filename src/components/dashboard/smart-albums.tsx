@@ -93,7 +93,7 @@ function AddAllToAlbumSheet({
                     onClick={() => void addAll(album.id)}
                     type="button"
                   >
-                    <span className="text-lg">{isDone ? "✅" : "📁"}</span>
+                    <span className="flex size-5 items-center justify-center" style={{ color: isDone ? "#56D892" : "rgba(255,255,255,.50)" }}>{isDone ? "✓" : folderIcon}</span>
                     <span className="flex-1 truncate text-sm font-semibold text-white/85">{album.name}</span>
                     {saving === album.id && <span className="text-xs text-white/40">Adding…</span>}
                     {isDone && <span className="text-xs font-semibold text-accent">Added</span>}
@@ -155,11 +155,29 @@ type SmartAlbumsProps = {
   eventPublicId: string;
 };
 
-const smartTypeEmoji: Record<SmartAlbum["type"], string> = {
-  by_uploader: "👤",
-  by_date: "📅",
-  by_tag: "🏷️",
+const smartTypeIcon: Record<SmartAlbum["type"], React.ReactNode> = {
+  by_uploader: (
+    <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="14">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+  ),
+  by_date: (
+    <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="14">
+      <rect height="18" rx="2" ry="2" width="18" x="3" y="4"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+    </svg>
+  ),
+  by_tag: (
+    <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="14">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" x2="7.01" y1="7" y2="7"/>
+    </svg>
+  ),
 };
+
+const folderIcon = (
+  <svg fill="none" height="14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="14">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+  </svg>
+);
 
 // ─── Create album modal ──────────────────────────────────────────────────────
 
@@ -359,7 +377,7 @@ export function SmartAlbums({
           </button>
           <div className="min-w-0">
             <h2 className="text-lg font-bold">
-              {smartTypeEmoji[activeSmartAlbum.type]} {activeSmartAlbum.label}
+              <span className="flex items-center gap-1.5">{smartTypeIcon[activeSmartAlbum.type]}{activeSmartAlbum.label}</span>
             </h2>
             <p className="text-sm text-white/45">{activeSmartAlbum.photoCount} photos</p>
           </div>
@@ -431,7 +449,7 @@ export function SmartAlbums({
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-widest text-white/45">
-            📁 My albums
+            <span className="flex items-center gap-1.5">{folderIcon} My albums</span>
           </h3>
           <button
             className="rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
@@ -472,7 +490,7 @@ export function SmartAlbums({
                         src={album.coverThumbnailUrl}
                       />
                     ) : (
-                      <div className="grid h-full place-items-center text-3xl opacity-30">📁</div>
+                      <div className="grid h-full place-items-center opacity-20" style={{ color: "rgba(255,255,255,.80)" }}><svg fill="none" height="40" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="40"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
                     )}
                   </div>
                 </button>
@@ -527,7 +545,7 @@ export function SmartAlbums({
         .map((section) => (
           <div key={section.type}>
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/45">
-              {smartTypeEmoji[section.type]} {section.title}
+              <span className="flex items-center gap-1.5">{smartTypeIcon[section.type]}{section.title}</span>
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {smartByType[section.type].map((album) => (
@@ -549,8 +567,8 @@ export function SmartAlbums({
                           src={album.coverThumbnailUrl}
                         />
                       ) : (
-                        <div className="grid h-full place-items-center text-2xl">
-                          {smartTypeEmoji[album.type]}
+                        <div className="grid h-full place-items-center opacity-30" style={{ color: "rgba(255,255,255,.80)" }}>
+                          <svg fill="none" height="40" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="40"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                         </div>
                       )}
                     </div>
@@ -698,7 +716,7 @@ function CustomAlbumDetail({
           Albums
         </button>
         <div className="min-w-0">
-          <h2 className="text-lg font-bold">📁 {album.name}</h2>
+          <h2 className="flex items-center gap-2 text-lg font-bold">{folderIcon} {album.name}</h2>
           <p className="text-sm text-white/45">{album.photoCount} photos</p>
         </div>
         <a
