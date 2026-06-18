@@ -353,13 +353,13 @@ export default async function DashboardPage({ searchParams }: Props) {
                 <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Profile</p>
                 <div className="mt-4 flex items-center gap-4">
                   <div
-                    className="flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white"
+                    className="flex size-12 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
                     style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 0 20px rgba(214,108,255,.25)" }}
                   >
                     {user.email[0].toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-semibold" style={{ color: "rgba(255,255,255,.92)" }}>{user.email}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold" style={{ color: "rgba(255,255,255,.92)" }}>{user.email}</p>
                     <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>Signed in with Google</p>
                   </div>
                 </div>
@@ -367,13 +367,13 @@ export default async function DashboardPage({ searchParams }: Props) {
 
               <div className="rounded-3xl p-6" style={glass}>
                 <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Plan</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <p className="font-semibold" style={{ color: "rgba(255,255,255,.92)" }}>Free</p>
                     <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>Basic access — no payment on file</p>
                   </div>
                   <Link
-                    className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
+                    className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                     href="/dashboard?tab=billing"
                     style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
                   >
@@ -384,12 +384,14 @@ export default async function DashboardPage({ searchParams }: Props) {
 
               <div className="rounded-3xl p-6" style={glass}>
                 <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Session</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <p className="font-semibold" style={{ color: "rgba(255,255,255,.92)" }}>Sign out</p>
-                    <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>You can sign back in with Google anytime.</p>
+                    <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>Sign back in with Google anytime.</p>
                   </div>
-                  <SignOutButton />
+                  <div className="shrink-0">
+                    <SignOutButton />
+                  </div>
                 </div>
               </div>
             </div>
