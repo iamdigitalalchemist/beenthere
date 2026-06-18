@@ -1254,9 +1254,37 @@ export function GalleryExperience({
             {/* Right: view toggle (desktop only) + select */}
             <div className="flex shrink-0 items-center gap-1.5">
               {!selectMode && (
-                <div className="hidden sm:block">
-                  <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
-                </div>
+                <>
+                  {/* Desktop: three-button toggle */}
+                  <div className="hidden sm:block">
+                    <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+                  </div>
+                  {/* Mobile: single cycle button */}
+                  <button
+                    className="flex size-8 items-center justify-center rounded-lg transition active:scale-95 sm:hidden"
+                    onClick={() => changeViewSize(viewSize === "compact" ? "medium" : viewSize === "medium" ? "large" : "compact")}
+                    style={{ background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.55)" }}
+                    title="Change grid size"
+                    type="button"
+                  >
+                    {viewSize === "compact" ? (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14">
+                        <rect height="4" rx="0.75" width="4" x="1" y="1"/><rect height="4" rx="0.75" width="4" x="6" y="1"/><rect height="4" rx="0.75" width="4" x="11" y="1"/>
+                        <rect height="4" rx="0.75" width="4" x="1" y="6"/><rect height="4" rx="0.75" width="4" x="6" y="6"/><rect height="4" rx="0.75" width="4" x="11" y="6"/>
+                        <rect height="4" rx="0.75" width="4" x="1" y="11"/><rect height="4" rx="0.75" width="4" x="6" y="11"/><rect height="4" rx="0.75" width="4" x="11" y="11"/>
+                      </svg>
+                    ) : viewSize === "medium" ? (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14">
+                        <rect height="6.5" rx="1" width="6.5" x="1" y="1"/><rect height="6.5" rx="1" width="6.5" x="8.5" y="1"/>
+                        <rect height="6.5" rx="1" width="6.5" x="1" y="8.5"/><rect height="6.5" rx="1" width="6.5" x="8.5" y="8.5"/>
+                      </svg>
+                    ) : (
+                      <svg fill="currentColor" height="14" viewBox="0 0 16 16" width="14">
+                        <rect height="6.5" rx="1.5" width="14" x="1" y="1"/><rect height="6.5" rx="1.5" width="14" x="1" y="8.5"/>
+                      </svg>
+                    )}
+                  </button>
+                </>
               )}
               <button
                 className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
