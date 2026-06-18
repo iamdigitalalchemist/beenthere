@@ -728,7 +728,11 @@ export function ModerationGrid({
             ) : (
               <div
                 className="relative min-w-0 overflow-x-auto rounded-2xl py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                style={{ background: "rgba(255,255,255,.06)" }}
+                style={{
+                  background: "rgba(255,255,255,.06)",
+                  maskImage: "linear-gradient(to right, black 70%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)",
+                }}
               >
                 <div className="flex gap-1 p-1 w-max sm:w-fit">
                   {([
