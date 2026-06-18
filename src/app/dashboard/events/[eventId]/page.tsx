@@ -18,11 +18,11 @@ type Props = {
 };
 
 
-const statusStyles: Record<string, { pill: string; label: string }> = {
-  draft:   { pill: "bg-amber-100 text-amber-700",     label: "Draft" },
-  active:  { pill: "bg-emerald-100 text-emerald-700", label: "Live" },
-  ended:   { pill: "bg-black/5 text-ink-muted",       label: "Ended" },
-  expired: { pill: "bg-black/5 text-ink-muted",       label: "Expired" },
+const statusStyles: Record<string, { pillStyle: React.CSSProperties; label: string; pill: string }> = {
+  draft:   { pill: "", pillStyle: { background: "rgba(255,190,85,.12)", color: "#FFBE55", border: "1px solid rgba(255,190,85,.20)" }, label: "Draft" },
+  active:  { pill: "", pillStyle: { background: "rgba(86,216,146,.12)", color: "#56D892", border: "1px solid rgba(86,216,146,.20)" }, label: "Live" },
+  ended:   { pill: "", pillStyle: { background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.35)", border: "1px solid rgba(255,255,255,.08)" }, label: "Ended" },
+  expired: { pill: "", pillStyle: { background: "rgba(255,255,255,.06)", color: "rgba(255,255,255,.35)", border: "1px solid rgba(255,255,255,.08)" }, label: "Expired" },
 };
 
 export default async function DashboardEventPage({ params, searchParams }: Props) {
@@ -46,31 +46,58 @@ export default async function DashboardEventPage({ params, searchParams }: Props
 
   const base = `/dashboard/events/${dashboard.event.publicId}`;
 
+  const glass: React.CSSProperties = {
+    background: "rgba(255,255,255,.04)",
+    border: "1px solid rgba(255,255,255,.08)",
+    backdropFilter: "blur(18px)",
+    boxShadow: "0 8px 32px rgba(0,0,0,.32)",
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8f9fb] text-ink">
+    <div
+      className="min-h-screen"
+      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)" }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{ background: "radial-gradient(circle at 50% 0%, rgba(117,84,255,.10) 0%, transparent 60%)" }}
+      />
 
       {/* ── Nav ── */}
-      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
+      <header
+        className="sticky top-0 z-20"
+        style={{ background: "rgba(9,9,24,.80)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
+      >
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5">
           <Link href="/">
-            <Image alt="beenThere" height={26} src="/logo.webp" width={104} />
+            <Image alt="beenThere" className="brightness-0 invert opacity-90" height={24} src="/logo.webp" width={96} />
           </Link>
-          <Link className="text-sm font-medium text-ink-muted transition hover:text-ink" href="/dashboard">
+          <Link
+            className="text-sm font-medium transition"
+            href="/dashboard"
+            style={{ color: "rgba(255,255,255,.45)" }}
+          >
             ← All events
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-5 pb-20 pt-8">
+      <main className="relative z-10 mx-auto max-w-5xl px-5 pb-20 pt-8">
 
         {/* ── Event header ── */}
         <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">{dashboard.event.name}</h1>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${s.pill}`}>{s.label}</span>
+              <h1
+                className="text-2xl font-bold lg:text-3xl"
+                style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.02em" }}
+              >
+                {dashboard.event.name}
+              </h1>
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-bold" style={s.pillStyle}>{s.label}</span>
             </div>
-            <p className="mt-1 text-sm capitalize text-ink-muted">
+            <p className="mt-1 text-sm capitalize" style={{ color: "rgba(255,255,255,.40)" }}>
               {dashboard.event.template} · {new Date(dashboard.event.startsAt).toLocaleDateString()}
             </p>
           </div>
@@ -78,15 +105,17 @@ export default async function DashboardEventPage({ params, searchParams }: Props
           {/* Quick action buttons */}
           <div className="flex flex-wrap gap-2 sm:shrink-0">
             <Link
-              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-accent/40 hover:text-accent active:scale-95"
+              className="rounded-full px-4 py-2 text-sm font-medium transition active:scale-95"
               href={joinPath}
+              style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
               target="_blank"
             >
               Guest link ↗
             </Link>
             <Link
-              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
               href={`/e/${dashboard.event.publicId}/slideshow`}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 4px 16px rgba(205,95,255,.25)" }}
               target="_blank"
             >
               Open gallery →
@@ -103,21 +132,21 @@ export default async function DashboardEventPage({ params, searchParams }: Props
 
         {/* ── Tabs ── */}
         <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
-        <div className="flex gap-1 rounded-2xl bg-black/5 p-1 w-max sm:w-fit">
-          {tabs.map((t) => (
-            <Link
-              className={`whitespace-nowrap rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95 ${
-                tab === t.id
-                  ? "bg-white text-ink shadow-sm"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-              href={`${base}?tab=${t.id}`}
-              key={t.id}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
+          <div className="flex gap-1 rounded-2xl p-1 w-max sm:w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
+            {tabs.map((t) => (
+              <Link
+                className="whitespace-nowrap rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95"
+                href={`${base}?tab=${t.id}`}
+                key={t.id}
+                style={tab === t.id
+                  ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
+                  : { color: "rgba(255,255,255,.40)" }
+                }
+              >
+                {t.label}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* ══ OVERVIEW TAB ══ */}
@@ -129,12 +158,17 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               {[
                 { label: "Photos",     value: dashboard.stats.totalPhotos },
                 { label: "Guests",     value: dashboard.stats.guestCount },
-                { label: "Reported",   value: dashboard.stats.reportedPhotos,  alert: dashboard.stats.reportedPhotos > 0 },
+                { label: "Reported",   value: dashboard.stats.reportedPhotos, alert: dashboard.stats.reportedPhotos > 0 },
                 { label: "Processing", value: dashboard.stats.processingPhotos },
               ].map(({ label, value, alert }) => (
-                <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5" key={label}>
-                  <p className="text-xs text-ink-muted">{label}</p>
-                  <p className={`mt-2 text-3xl font-bold ${alert ? "text-red-500" : ""}`}>{value}</p>
+                <div className="rounded-3xl p-5" key={label} style={glass}>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,.35)" }}>{label}</p>
+                  <p
+                    className="mt-2 text-3xl font-bold"
+                    style={{ color: alert ? "#FF5F7B" : "rgba(255,255,255,.92)", letterSpacing: "-0.02em" }}
+                  >
+                    {value}
+                  </p>
                 </div>
               ))}
             </div>
@@ -150,48 +184,64 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               />
 
               {/* Share */}
-              <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-                <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Share with guests</p>
-                <p className="mt-3 break-all rounded-2xl bg-[#f8f9fb] px-4 py-3 font-mono text-xs text-ink-muted ring-1 ring-black/5">
+              <div className="rounded-3xl p-6" style={glass}>
+                <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Share with guests</p>
+                <p
+                  className="mt-3 break-all rounded-2xl px-4 py-3 font-mono text-xs"
+                  style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.40)" }}
+                >
                   {joinPath}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <Link
-                    className="rounded-full border border-black/10 bg-[#f8f9fb] px-4 py-2 text-sm font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
-                    href={`${base}/signage`}
-                  >
-                    Printable QR
-                  </Link>
-                  <a
-                    className="rounded-full border border-black/10 bg-[#f8f9fb] px-4 py-2 text-sm font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
-                    download
-                    href={`/api/events/${dashboard.event.publicId}/export`}
-                  >
-                    Download ZIP
-                  </a>
-                  <Link
-                    className="rounded-full border border-black/10 bg-[#f8f9fb] px-4 py-2 text-sm font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
-                    href={`/e/${dashboard.event.publicId}/slideshow`}
-                    target="_blank"
-                  >
-                    Slideshow ↗
-                  </Link>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[
+                    { label: "Printable QR", href: `${base}/signage`, download: false },
+                    { label: "Download ZIP", href: `/api/events/${dashboard.event.publicId}/export`, download: true },
+                    { label: "Slideshow ↗", href: `/e/${dashboard.event.publicId}/slideshow`, download: false, target: "_blank" },
+                  ].map(({ label, href, download: dl, target }) => (
+                    dl ? (
+                      <a
+                        className="rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95"
+                        download
+                        href={href}
+                        key={label}
+                        style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }}
+                      >
+                        {label}
+                      </a>
+                    ) : (
+                      <Link
+                        className="rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95"
+                        href={href}
+                        key={label}
+                        style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }}
+                        target={target}
+                      >
+                        {label}
+                      </Link>
+                    )
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Reported photos callout */}
             {dashboard.stats.reportedPhotos > 0 && (
-              <div className="flex items-center justify-between gap-4 rounded-3xl bg-red-50 px-6 py-4 ring-1 ring-red-200">
+              <div
+                className="flex items-center justify-between gap-4 rounded-3xl px-6 py-4"
+                style={{ background: "rgba(255,95,123,.10)", border: "1px solid rgba(255,95,123,.20)" }}
+              >
                 <div>
-                  <p className="font-semibold text-red-800">
+                  <p className="font-semibold" style={{ color: "#FF8FA3" }}>
                     {dashboard.stats.reportedPhotos} reported photo{dashboard.stats.reportedPhotos > 1 ? "s" : ""} need review
                   </p>
-                  <p className="mt-0.5 text-sm text-red-700">Review and approve or remove them before the slideshow.</p>
+                  <p className="mt-0.5 text-sm" style={{ color: "rgba(255,143,163,.70)" }}>
+                    Review and approve or remove them before the slideshow.
+                  </p>
                 </div>
                 <Link
-                  className="shrink-0 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 active:scale-95"
+                  className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                   href={`${base}?tab=photos`}
+                  style={{ background: "#FF5F7B" }}
                 >
                   Review
                 </Link>
@@ -204,23 +254,25 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         {tab === "photos" && (
           <div>
             {/* All / Albums sub-toggle */}
-            <div className="mb-6 flex gap-1 rounded-2xl bg-black/5 p-1 w-fit max-w-full overflow-x-auto">
-              {[
-                { id: "all", label: "All photos" },
-                { id: "albums", label: `Albums${(dashboard.albums.length + dashboard.customAlbums.length) > 0 ? ` · ${dashboard.albums.length + dashboard.customAlbums.length}` : ""}` },
-              ].map((v) => (
-                <Link
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition active:scale-95 ${
-                    view === v.id
-                      ? "bg-white text-ink shadow-sm"
-                      : "text-ink-muted hover:text-ink"
-                  }`}
-                  href={`${base}?tab=photos&view=${v.id}`}
-                  key={v.id}
-                >
-                  {v.label}
-                </Link>
-              ))}
+            <div className="mb-6 overflow-x-auto">
+              <div className="flex gap-1 rounded-2xl p-1 w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
+                {[
+                  { id: "all", label: "All photos" },
+                  { id: "albums", label: `Albums${(dashboard.albums.length + dashboard.customAlbums.length) > 0 ? ` · ${dashboard.albums.length + dashboard.customAlbums.length}` : ""}` },
+                ].map((v) => (
+                  <Link
+                    className="rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition active:scale-95"
+                    href={`${base}?tab=photos&view=${v.id}`}
+                    key={v.id}
+                    style={view === v.id
+                      ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
+                      : { color: "rgba(255,255,255,.40)" }
+                    }
+                  >
+                    {v.label}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {view === "albums" ? (
@@ -264,25 +316,27 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             />
 
             {/* Signage */}
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">QR Signage</p>
-              <p className="mt-2 text-sm text-ink-muted">Print a poster for your event so guests can scan and join instantly.</p>
+            <div className="rounded-3xl p-6" style={glass}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>QR Signage</p>
+              <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,.45)" }}>Print a poster for your event so guests can scan and join instantly.</p>
               <Link
-                className="mt-4 inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+                className="mt-4 inline-block rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                 href={`${base}/signage`}
+                style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
               >
                 Open signage →
               </Link>
             </div>
 
             {/* Export */}
-            <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Export</p>
-              <p className="mt-2 text-sm text-ink-muted">Download all original photos as a ZIP file.</p>
+            <div className="rounded-3xl p-6" style={glass}>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Export</p>
+              <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,.45)" }}>Download all original photos as a ZIP file.</p>
               <a
-                className="mt-4 inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+                className="mt-4 inline-block rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                 download
                 href={`/api/events/${dashboard.event.publicId}/export`}
+                style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
               >
                 Download all photos
               </a>

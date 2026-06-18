@@ -43,16 +43,29 @@ export function StorageCard({ eventId, initialUsedBytes, limitBytes }: StorageCa
   const percent = Math.min(100, Math.round((usedBytes / limitBytes) * 100));
 
   return (
-    <div className="rounded-3xl bg-ink p-6 text-white shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Storage</p>
-      <p className="mt-3 text-4xl font-bold">{percent}%</p>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+    <div
+      className="rounded-3xl p-6 text-white"
+      style={{
+        background: "rgba(255,255,255,.04)",
+        border: "1px solid rgba(255,255,255,.08)",
+        backdropFilter: "blur(18px)",
+        boxShadow: "0 0 40px rgba(165,112,255,.10), 0 8px 32px rgba(0,0,0,.32)",
+      }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,.30)", letterSpacing: "0.08em" }}>Storage</p>
+      <p className="mt-3 text-4xl font-bold" style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.02em" }}>{percent}%</p>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,.08)" }}>
         <div
-          className={`h-full rounded-full transition-all duration-500 ${percent > 85 ? "bg-red-400" : "bg-accent"}`}
-          style={{ width: `${percent}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${percent}%`,
+            background: percent > 85
+              ? "#FF5F7B"
+              : "linear-gradient(90deg, #FF6DAE, #B35DFF)",
+          }}
         />
       </div>
-      <p className="mt-2 text-xs text-white/40">
+      <p className="mt-2 text-xs" style={{ color: "rgba(255,255,255,.30)" }}>
         {formatBytes(usedBytes)} of {formatBytes(limitBytes)}
       </p>
     </div>

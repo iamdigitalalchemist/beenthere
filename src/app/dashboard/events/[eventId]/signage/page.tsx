@@ -8,11 +8,7 @@ import { canManageEvent, requireUser } from "@/server/auth";
 import { getDashboardEvent } from "@/server/data";
 import { createJoinQrDataUrl } from "@/server/qr";
 
-type SignagePageProps = {
-  params: Promise<{
-    eventId: string;
-  }>;
-};
+type SignagePageProps = { params: Promise<{ eventId: string }> };
 
 export default async function SignagePage({ params }: SignagePageProps) {
   const user = await requireUser();
@@ -30,18 +26,30 @@ export default async function SignagePage({ params }: SignagePageProps) {
   const qrDataUrl = await createJoinQrDataUrl(joinUrl);
 
   return (
-    <div className="print-signage-root min-h-screen bg-[#f8f9fb] text-ink">
+    <div
+      className="print-signage-root min-h-screen"
+      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)" }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="no-print pointer-events-none fixed inset-0 z-0"
+        style={{ background: "radial-gradient(circle at 50% 0%, rgba(117,84,255,.12) 0%, transparent 60%)" }}
+      />
 
-      {/* ── Nav ── */}
-      <header className="no-print border-b border-black/5 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
+      {/* Nav */}
+      <header
+        className="no-print relative z-10"
+        style={{ background: "rgba(9,9,24,.80)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
+      >
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3.5">
           <Link href="/">
-            <Image alt="beenThere" height={28} src="/logo.webp" width={110} />
+            <Image alt="beenThere" className="brightness-0 invert opacity-90" height={24} src="/logo.webp" width={96} />
           </Link>
           <div className="flex items-center gap-3">
             <Link
-              className="text-sm font-medium text-ink-muted transition hover:text-ink"
+              className="text-sm font-medium transition"
               href={`/dashboard/events/${dashboard.event.publicId}`}
+              style={{ color: "rgba(255,255,255,.45)" }}
             >
               ← Back to dashboard
             </Link>
@@ -50,10 +58,11 @@ export default async function SignagePage({ params }: SignagePageProps) {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-10">
-        <article className="print-signage-card w-full max-w-xl rounded-3xl bg-white p-10 shadow-sm ring-1 ring-black/5">
+      <main className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-10">
+        {/* The printable card — white for print readability */}
+        <article className="print-signage-card w-full max-w-xl rounded-3xl bg-white p-10 shadow-2xl">
           <Image alt="beenThere" className="mx-auto mb-2" height={24} src="/logo.webp" width={96} />
-          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="mt-6 text-center text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             {dashboard.event.name}
           </h1>
           <p className="mt-2 text-center text-base text-ink-muted">
@@ -85,7 +94,7 @@ export default async function SignagePage({ params }: SignagePageProps) {
           </p>
         </article>
 
-        <p className="no-print text-center text-sm text-ink-muted">
+        <p className="no-print text-center text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
           Print this page and place it near the entrance or photo wall. Guests scan to open the gallery instantly.
         </p>
       </main>
