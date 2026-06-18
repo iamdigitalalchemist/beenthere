@@ -425,8 +425,6 @@ export function ModerationGrid({
   const pillButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressMoved = useRef(false);
 
   async function toggleGallery(photoId: string, inGallery: boolean) {
     setPhotos((current) =>
@@ -853,22 +851,10 @@ export function ModerationGrid({
 
           return (
             <article
-              className={`overflow-hidden transition ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
+              className={`group overflow-hidden transition ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
               key={photo.id}
-              onPointerCancel={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-              onPointerDown={() => {
-                if (selectMode) return;
-                longPressMoved.current = false;
-                longPressTimer.current = setTimeout(() => {
-                  if (!longPressMoved.current) {
-                    setSelectMode(true);
-                    setSelectedIds(new Set([photo.id]));
-                  }
-                }, 500);
-              }}
-              onPointerMove={() => { longPressMoved.current = true; if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-              onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
               style={{
+                WebkitTouchCallout: "none" as React.CSSProperties["WebkitTouchCallout"],
                 background: "rgba(255,255,255,.04)",
                 border: isSelected
                   ? "2px solid #e0b6ff"
@@ -908,7 +894,10 @@ export function ModerationGrid({
                       <img
                         alt={`Uploaded by ${uploaderName}`}
                         className="h-full w-full object-cover transition hover:opacity-90"
+                        draggable={false}
+                        onContextMenu={(e) => e.preventDefault()}
                         src={photo.thumbnailUrl}
+                        style={{ WebkitTouchCallout: "none" }}
                       />
                     ) : (
                       <div className="grid h-full place-items-center text-xs text-ink-muted">Processing…</div>
@@ -917,7 +906,7 @@ export function ModerationGrid({
                 </button>
 
                 {viewSize === "compact" && (
-                  <div className="absolute bottom-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100 [article:hover_&]:opacity-100">
+                  <div className="absolute bottom-2 left-1/2 hidden -translate-x-1/2 gap-1 opacity-0 transition-opacity group-hover:opacity-100 [@media(min-width:600px)]:flex">
                     {confirmingDeleteId === photo.id ? (
                       <>
                         <button

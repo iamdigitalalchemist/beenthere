@@ -8,8 +8,8 @@ export default async function NewEventPage() {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)" }}
+      className="flex min-h-full flex-col"
+      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 50%, #0C0D20 100%)" }}
     >
       {/* Ambient glow */}
       <div
@@ -36,7 +36,7 @@ export default async function NewEventPage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-lg px-6 py-12">
+      <main className="relative z-10 mx-auto w-full max-w-lg grow px-5 py-8 sm:py-12">
         <p
           className="text-xs font-semibold uppercase"
           style={{
@@ -59,15 +59,7 @@ export default async function NewEventPage() {
           Set up your private gallery. Guests join with a QR code — no app, no accounts.
         </p>
 
-        <div
-          className="mt-8 rounded-3xl p-6"
-          style={{
-            background: "rgba(255,255,255,.04)",
-            border: "1px solid rgba(255,255,255,.08)",
-            backdropFilter: "blur(18px)",
-            boxShadow: "0 8px 32px rgba(0,0,0,.32)",
-          }}
-        >
+        <div className="mt-6">
           <CreateEventForm />
         </div>
       </main>

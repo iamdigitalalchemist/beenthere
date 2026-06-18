@@ -31,10 +31,15 @@
 }
 
 body {
-  background: var(--canvas);
+  background: #090918;
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   overflow-x: clip;
+}
+
+/* Prevent iOS Safari from zooming on input focus (requires font-size >= 16px) */
+input, textarea, select {
+  font-size: max(16px, 1em);
 }
 
 /* Event card layout */

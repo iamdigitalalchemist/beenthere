@@ -24,15 +24,16 @@ function todayLocalDateString() {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,.06)",
-  border: "1px solid rgba(255,255,255,.10)",
+  background: "rgba(255,255,255,.10)",
+  border: "1px solid rgba(255,255,255,.16)",
   color: "rgba(255,255,255,.92)",
   borderRadius: "16px",
-  padding: "12px 16px",
-  fontSize: "14px",
+  padding: "14px 16px",
+  fontSize: "16px",
   outline: "none",
   width: "100%",
   transition: "border-color 150ms",
+  minHeight: "52px",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -97,17 +98,25 @@ export function CreateEventForm() {
 
       <label className="flex flex-col">
         <span style={labelStyle}>Type of event</span>
-        <select
-          onChange={(e) => setTemplate(e.target.value as EventTemplate)}
-          style={{ ...inputStyle, appearance: "none" }}
-          value={template}
-        >
-          {templates.map((option) => (
-            <option key={option.value} style={{ background: "#0F1023" }} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            onChange={(e) => setTemplate(e.target.value as EventTemplate)}
+            style={{ ...inputStyle, appearance: "none", paddingRight: "40px" }}
+            value={template}
+          >
+            {templates.map((option) => (
+              <option key={option.value} style={{ background: "#1a1c35", color: "rgba(255,255,255,.92)" }} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <span
+            className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2"
+            style={{ color: "rgba(255,255,255,.40)", fontSize: "12px" }}
+          >
+            ▾
+          </span>
+        </div>
       </label>
 
       <label className="flex flex-col">
@@ -134,7 +143,7 @@ export function CreateEventForm() {
       )}
 
       <button
-        className="rounded-full px-6 py-3 text-sm font-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
+        className="min-h-[52px] w-full rounded-full px-6 py-3.5 text-base font-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
         disabled={isSubmitting}
         style={{
           background: "linear-gradient(135deg, #FF6DAE, #B35DFF)",

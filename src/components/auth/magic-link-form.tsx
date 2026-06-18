@@ -60,7 +60,7 @@ export function MagicLinkForm({ next }: Props) {
     <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
       <input
         autoComplete="email"
-        className="w-full rounded-2xl px-4 py-3 text-sm outline-none transition"
+        className="w-full rounded-2xl px-4 py-3 text-base outline-none transition"
         onChange={(e) => setEmail(e.target.value)}
         placeholder="your@email.com"
         required

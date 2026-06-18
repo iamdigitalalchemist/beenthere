@@ -115,7 +115,7 @@ export function PhotoSharePanel({
     color: "rgba(255,255,255,.85)",
     borderRadius: "16px",
     padding: "12px 16px",
-    fontSize: "14px",
+    fontSize: "16px",
     outline: "none",
     width: "100%",
     resize: "vertical" as const,

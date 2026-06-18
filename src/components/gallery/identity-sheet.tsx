@@ -106,7 +106,7 @@ export function IdentitySheet({
     color: "rgba(255,255,255,.92)",
     borderRadius: "16px",
     padding: "12px 16px",
-    fontSize: "14px",
+    fontSize: "16px",
     outline: "none",
     width: "100%",
     minHeight: "44px",

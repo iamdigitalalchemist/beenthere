@@ -70,7 +70,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   return (
     <div
-      className="min-h-screen"
+      className="flex min-h-full flex-col"
       style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)" }}
     >
       {/* Ambient glow */}
@@ -95,7 +95,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-5xl px-5 pb-20 pt-8">
+      <main className="relative z-10 mx-auto w-full max-w-5xl grow px-5 pb-20 pt-8">
 
         {/* Page title */}
         <div className="mb-7">
@@ -129,15 +129,15 @@ export default async function DashboardPage({ searchParams }: Props) {
         {/* ══ EVENTS TAB ══ */}
         {tab === "events" && (
           <div>
-            <div className="mb-5 flex items-center justify-between">
-              <div>
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div className="min-w-0">
                 <h2 className="text-lg font-bold" style={{ color: "rgba(255,255,255,.92)" }}>Your events</h2>
                 <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,.40)" }}>
                   Manage galleries, moderate photos, share join links.
                 </p>
               </div>
               <Link
-                className="shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 active:scale-95"
+                className="shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
                 href="/dashboard/new"
                 style={{
                   background: "linear-gradient(135deg, #FF6DAE, #B35DFF)",

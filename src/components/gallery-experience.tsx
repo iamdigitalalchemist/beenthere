@@ -33,7 +33,6 @@ import {
   type StoredParticipant,
 } from "@/lib/participant-storage";
 import { SegmentedControl } from "@/components/segmented-control";
-import { useLongPress } from "@/lib/use-long-press";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getInitials } from "@/lib/ui";
@@ -229,8 +228,6 @@ export function GalleryExperience({
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const photoIdsRef = useRef(new Set(initialPhotos.map((photo) => photo.id)));
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressMoved = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const masonryRef = useRef<HTMLDivElement>(null);
   // Keep 0 on server and first client render so row spans match during hydration.
@@ -1294,7 +1291,7 @@ export function GalleryExperience({
           </div>
           {/* Search: full width on its own row */}
           <input
-            className="min-h-11 w-full rounded-full px-4 py-2.5 text-sm outline-none transition"
+            className="min-h-11 w-full rounded-full px-4 py-2.5 text-base outline-none transition"
             onChange={(inputEvent) => setSearch(inputEvent.target.value)}
             placeholder="Search by name"
             style={{
@@ -1367,22 +1364,10 @@ export function GalleryExperience({
                 <article
                   className={`gallery-photo-enter group relative min-h-0 overflow-hidden rounded-2xl bg-black/5 shadow-sm transition ${isSelected ? "ring-2 ring-accent ring-offset-1" : ""}`}
                   key={photo.id}
-                  onPointerCancel={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-                  onPointerDown={() => {
-                    if (selectMode) return;
-                    longPressMoved.current = false;
-                    longPressTimer.current = setTimeout(() => {
-                      if (!longPressMoved.current) {
-                        setSelectMode(true);
-                        setSelectedIds(new Set([photo.id]));
-                      }
-                    }, 500);
-                  }}
-                  onPointerMove={() => { longPressMoved.current = true; if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
-                  onPointerUp={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
                   style={{
                     animationDelay: `${Math.min(index, 14) * 35}ms`,
                     gridRowEnd: `span ${getGalleryRowSpan(photo, masonryWidth, viewSize)}`,
+                    WebkitTouchCallout: "none",
                   }}
                 >
                   {selectMode && (
@@ -1411,7 +1396,9 @@ export function GalleryExperience({
                       alt={`Photo by ${uploaderName}`}
                       className="pointer-events-none h-full w-full bg-border object-cover transition duration-300 group-hover:scale-[1.02]"
                       draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
                       src={photo.thumbnailUrl || undefined}
+                      style={{ WebkitTouchCallout: "none" }}
                     />
                   </button>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
@@ -1429,23 +1416,25 @@ export function GalleryExperience({
                       Processing
                     </span>
                   ) : null}
-                  <button
-                    aria-label={isSaved ? "Remove from saved" : "Save photo"}
-                    className="save-pop absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full transition active:scale-95"
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      void toggleSaved(photo.id);
-                    }}
-                    style={{ background: "rgba(0,0,0,.45)", backdropFilter: "blur(4px)" }}
-                    type="button"
-                  >
-                    <HeartIcon
-                      className={`size-4 transition ${
-                        isSaved ? "text-[#FF6DAE]" : "text-white"
-                      }`}
-                      filled={isSaved}
-                    />
-                  </button>
+                  {viewSize !== "compact" && (
+                    <button
+                      aria-label={isSaved ? "Remove from saved" : "Save photo"}
+                      className="save-pop absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full transition active:scale-95"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        void toggleSaved(photo.id);
+                      }}
+                      style={{ background: "rgba(0,0,0,.45)", backdropFilter: "blur(4px)" }}
+                      type="button"
+                    >
+                      <HeartIcon
+                        className={`size-4 transition ${
+                          isSaved ? "text-[#FF6DAE]" : "text-white"
+                        }`}
+                        filled={isSaved}
+                      />
+                    </button>
+                  )}
                 </article>
               );
             })}
