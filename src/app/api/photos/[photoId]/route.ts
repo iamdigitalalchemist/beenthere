@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getEventManagerForApi } from "@/server/auth";
 import { getPhotoEventOwner, setPhotoVisibility } from "@/server/data";
+import { logger } from "@/server/logger";
+import * as Sentry from "@sentry/nextjs";
 import type { PhotoVisibility } from "@/types/domain";
 
 type PhotoRouteProps = {
@@ -47,8 +49,11 @@ export async function PATCH(request: Request, { params }: PhotoRouteProps) {
     if (error instanceof Error && error.message === "Photo not found.") {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
+    Sentry.captureException(error);
     throw error;
   }
+
+  logger.info("photo_visibility_changed", { photo_id: photoId, visibility: body.visibility });
 
   return NextResponse.json({ ok: true });
 }

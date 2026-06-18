@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { ActivateEventBanner } from "@/components/dashboard/activate-event-banner";
 import { EventPinSettings } from "@/components/dashboard/event-pin-settings";
 import { EventSocialsSettings } from "@/components/dashboard/event-socials-settings";
+import { UploadPolicySettings } from "@/components/dashboard/upload-policy-settings";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
+import { StorageCard } from "@/components/dashboard/storage-card";
 import { getJoinPath } from "@/lib/join";
 import { canManageEvent, requireUser } from "@/server/auth";
 import { getDashboardEvent } from "@/server/data";
@@ -15,10 +17,6 @@ type Props = {
   searchParams: Promise<{ tab?: string; view?: string }>;
 };
 
-function formatBytes(bytes: number) {
-  const gb = bytes / 1024 / 1024 / 1024;
-  return `${gb.toFixed(1)} GB`;
-}
 
 const statusStyles: Record<string, { pill: string; label: string }> = {
   draft:   { pill: "bg-amber-100 text-amber-700",     label: "Draft" },
@@ -38,10 +36,6 @@ export default async function DashboardEventPage({ params, searchParams }: Props
   }
 
   const joinPath = getJoinPath(dashboard.event.joinToken || undefined);
-  const storagePercent = Math.min(
-    100,
-    Math.round((dashboard.event.storageUsedBytes / dashboard.event.storageLimitBytes) * 100),
-  );
   const s = statusStyles[dashboard.event.status] ?? statusStyles.draft;
 
   const tabs = [
@@ -108,10 +102,11 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         )}
 
         {/* ── Tabs ── */}
-        <div className="mb-7 flex gap-1 rounded-2xl bg-black/5 p-1 sm:w-fit">
+        <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="flex gap-1 rounded-2xl bg-black/5 p-1 w-max sm:w-fit">
           {tabs.map((t) => (
             <Link
-              className={`rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95 ${
+              className={`whitespace-nowrap rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95 ${
                 tab === t.id
                   ? "bg-white text-ink shadow-sm"
                   : "text-ink-muted hover:text-ink"
@@ -122,6 +117,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               {t.label}
             </Link>
           ))}
+        </div>
         </div>
 
         {/* ══ OVERVIEW TAB ══ */}
@@ -147,19 +143,11 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             <div className="grid gap-4 md:grid-cols-2">
 
               {/* Storage */}
-              <div className="rounded-3xl bg-ink p-6 text-white shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/40">Storage</p>
-                <p className="mt-3 text-4xl font-bold">{storagePercent}%</p>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={`h-full rounded-full transition-all ${storagePercent > 85 ? "bg-red-400" : "bg-accent"}`}
-                    style={{ width: `${storagePercent}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-white/40">
-                  {formatBytes(dashboard.event.storageUsedBytes)} of {formatBytes(dashboard.event.storageLimitBytes)}
-                </p>
-              </div>
+              <StorageCard
+                eventId={dashboard.event.id}
+                initialUsedBytes={dashboard.event.storageUsedBytes}
+                limitBytes={dashboard.event.storageLimitBytes}
+              />
 
               {/* Share */}
               <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-black/5">
@@ -216,7 +204,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         {tab === "photos" && (
           <div>
             {/* All / Albums sub-toggle */}
-            <div className="mb-6 flex gap-1 rounded-2xl bg-black/5 p-1 w-fit">
+            <div className="mb-6 flex gap-1 rounded-2xl bg-black/5 p-1 w-fit max-w-full overflow-x-auto">
               {[
                 { id: "all", label: "All photos" },
                 { id: "albums", label: `Albums${(dashboard.albums.length + dashboard.customAlbums.length) > 0 ? ` · ${dashboard.albums.length + dashboard.customAlbums.length}` : ""}` },
@@ -251,6 +239,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
                 uploaderNames={dashboard.uploaderNames}
                 customAlbums={dashboard.customAlbums}
                 eventPublicId={dashboard.event.publicId}
+                eventId={dashboard.event.id}
               />
             )}
           </div>
@@ -267,6 +256,11 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             <EventSocialsSettings
               collectSocials={dashboard.event.collectSocials}
               eventPublicId={dashboard.event.publicId}
+            />
+
+            <UploadPolicySettings
+              eventPublicId={dashboard.event.publicId}
+              uploadPolicy={dashboard.event.uploadPolicy}
             />
 
             {/* Signage */}

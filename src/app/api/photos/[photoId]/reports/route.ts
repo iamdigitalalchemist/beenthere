@@ -4,6 +4,8 @@ import { getDatabasePool } from "@/server/db";
 import { getPhotoEventId, reportPhoto } from "@/server/photo-reports";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
 import { getActiveParticipantForSession } from "@/server/sessions";
+import { logger } from "@/server/logger";
+import * as Sentry from "@sentry/nextjs";
 
 type PhotoReportsRouteProps = {
   params: Promise<{
@@ -58,8 +60,19 @@ export async function POST(
       reason: reason || undefined,
     });
 
+    logger.info("photo_reported", {
+      photo_id: photoId,
+      event_id: eventId,
+      participant_id: participant?.id,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
+    Sentry.captureException(error, { extra: { photo_id: photoId } });
+    logger.error("photo_report_failed", {
+      photo_id: photoId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       {
         error:

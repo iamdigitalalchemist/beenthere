@@ -15,6 +15,7 @@ import { getEventPhotoReports } from "@/server/photo-reports";
 import { getSmartAlbums } from "@/server/smart-albums";
 import { getCustomAlbums } from "@/server/custom-albums";
 import { createSignedPhotoReadUrl } from "@/server/r2";
+import { logger } from "@/server/logger";
 import type {
   EventParticipant,
   EventRecord,
@@ -22,6 +23,11 @@ import type {
   PhotoRecord,
   PhotoVisibility,
 } from "@/types/domain";
+
+const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
+  template, status, plan, starts_at, ends_at, upload_closes_at,
+  gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
+  storage_limit_bytes, storage_used_bytes, upload_policy`;
 
 type EventRow = {
   id: string;
@@ -42,6 +48,7 @@ type EventRow = {
   collect_socials: boolean;
   storage_limit_bytes: number;
   storage_used_bytes: number;
+  upload_policy: EventRecord["uploadPolicy"];
 };
 
 type PhotoRow = {
@@ -50,6 +57,7 @@ type PhotoRow = {
   event_participant_id: string;
   status: PhotoRecord["status"];
   visibility: PhotoRecord["visibility"];
+  in_gallery: boolean;
   original_key: string;
   thumbnail_key: string | null;
   preview_key: string | null;
@@ -93,6 +101,7 @@ function mapEventRow(row: EventRow): EventRecord {
     collectSocials: Boolean(row.collect_socials),
     storageLimitBytes: toNumber(row.storage_limit_bytes),
     storageUsedBytes: toNumber(row.storage_used_bytes),
+    uploadPolicy: row.upload_policy ?? "open",
   };
 }
 
@@ -108,6 +117,7 @@ async function mapPhotoRow(row: PhotoRow): Promise<PhotoRecord> {
     participantId: row.event_participant_id,
     status: row.status,
     visibility: row.visibility,
+    inGallery: row.in_gallery,
     originalKey: row.original_key,
     thumbnailUrl,
     previewUrl,
@@ -301,10 +311,7 @@ export async function getEventByJoinToken(token: string) {
   }
 
   const { rows } = await pool.query<EventRow>(
-    `select id, public_id, owner_user_id, join_token, name, template, status,
-            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
-            storage_used_bytes
+    `select ${EVENT_SELECT_COLUMNS}
        from beenthere.events
       where join_token_hash = $1
       limit 1`,
@@ -320,6 +327,7 @@ export async function getEventByJoinToken(token: string) {
 
 export async function getEventGallery(publicId: string) {
   const pool = getDatabasePool();
+  const t0 = Date.now();
 
   if (!pool) {
     const event = getDemoEventByPublicId(publicId);
@@ -333,10 +341,7 @@ export async function getEventGallery(publicId: string) {
   }
 
   const eventResult = await pool.query<EventRow>(
-    `select id, public_id, owner_user_id, join_token, name, template, status,
-            plan, starts_at, ends_at, upload_closes_at, gallery_expires_at,
-            language, welcome_message, pin_hash, collect_socials, storage_limit_bytes,
-            storage_used_bytes
+    `select ${EVENT_SELECT_COLUMNS}
        from beenthere.events
       where public_id = $1
       limit 1`,
@@ -358,14 +363,14 @@ export async function getEventGallery(publicId: string) {
     PhotoRow & { participant_display_name: string | null }
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
-            p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
+            p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
             p.original_content_type, p.original_size_bytes, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
        left join beenthere.event_participants ep
          on ep.id = p.event_participant_id
       where p.event_id = $1
-        and p.visibility <> 'deleted'
+        and p.visibility = 'visible'
       order by p.uploaded_at desc`,
     [eventRow.id],
   );
@@ -381,6 +386,12 @@ export async function getEventGallery(publicId: string) {
       row.event_participants?.display_name ?? "Guest",
     ]),
   );
+
+  logger.info("gallery_loaded", {
+    public_id: publicId,
+    photo_count: photos.length,
+    duration_ms: Date.now() - t0,
+  });
 
   return {
     event: mapEventRow(eventRow),
@@ -403,7 +414,7 @@ export async function getEventPhotos(eventId: string) {
     PhotoRow & { participant_display_name: string | null }
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
-            p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
+            p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
             p.original_content_type, p.original_size_bytes, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
@@ -431,6 +442,7 @@ export async function getEventPhotos(eventId: string) {
 }
 
 export async function getDashboardEvent(publicId: string) {
+  // Get event metadata via gallery (handles demo event, pin, etc.)
   const gallery = await getEventGallery(publicId);
   const pool = getDatabasePool();
 
@@ -438,31 +450,38 @@ export async function getDashboardEvent(publicId: string) {
     return undefined;
   }
 
+  // For the dashboard we need ALL non-deleted photos, not just gallery-visible ones.
+  const allPhotosResult = pool
+    ? await getEventPhotos(gallery.event.id)
+    : { photos: gallery.photos, uploaderNames: gallery.uploaderNames };
+
   if (!pool) {
     const [albums, customAlbums] = await Promise.all([
       getSmartAlbums(gallery.event.id),
       getCustomAlbums(gallery.event.id),
     ]);
     return {
-      ...gallery,
+      event: gallery.event,
+      photos: allPhotosResult.photos,
+      uploaderNames: allPhotosResult.uploaderNames,
       albums,
       customAlbums,
       reports: {},
       stats: {
-        totalPhotos: gallery.photos.length,
-        visiblePhotos: gallery.photos.filter(
+        totalPhotos: allPhotosResult.photos.length,
+        visiblePhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "visible",
         ).length,
-        hiddenPhotos: gallery.photos.filter(
+        hiddenPhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "hidden",
         ).length,
-        reportedPhotos: gallery.photos.filter(
+        reportedPhotos: allPhotosResult.photos.filter(
           (photo) => photo.visibility === "reported",
         ).length,
-        processingPhotos: gallery.photos.filter(
+        processingPhotos: allPhotosResult.photos.filter(
           (photo) => photo.status !== "ready",
         ).length,
-        guestCount: new Set(gallery.photos.map((photo) => photo.participantId))
+        guestCount: new Set(allPhotosResult.photos.map((photo) => photo.participantId))
           .size,
       },
     };
@@ -496,7 +515,9 @@ export async function getDashboardEvent(publicId: string) {
   const stats = rows[0];
 
   return {
-    ...gallery,
+    event: gallery.event,
+    photos: allPhotosResult.photos,
+    uploaderNames: allPhotosResult.uploaderNames,
     albums,
     customAlbums,
     reports,
@@ -521,7 +542,7 @@ export async function getSlideshowEvent(publicId: string) {
   return {
     event: gallery.event,
     photos: gallery.photos.filter(
-      (photo) => photo.status === "ready" && photo.visibility === "visible",
+      (photo) => photo.status === "ready" && photo.visibility === "visible" && photo.inGallery,
     ),
   };
 }
@@ -536,18 +557,29 @@ export async function setPhotoVisibility(input: {
     throw new Error("POSTGRES_URL is not configured.");
   }
 
-  const { rows } = await pool.query<{ id: string }>(
+  const { rows } = await pool.query<{ id: string; event_id: string; original_size_bytes: string }>(
     `update beenthere.photos
         set visibility = $2::beenthere.photo_visibility,
-            deleted_at = case when $2::beenthere.photo_visibility = 'deleted' then now() else null end
+            deleted_at = case when $2::beenthere.photo_visibility = 'deleted' then now() else null end,
+            in_gallery = case when $2::beenthere.photo_visibility in ('hidden', 'deleted') then false else in_gallery end
       where id = $1
         and visibility <> 'deleted'
-      returning id`,
+      returning id, event_id, original_size_bytes`,
     [input.photoId, input.visibility],
   );
 
   if (!rows[0]) {
     throw new Error("Photo not found.");
+  }
+
+  if (input.visibility === "deleted") {
+    await pool.query(
+      `update beenthere.events
+          set storage_used_bytes = greatest(0, storage_used_bytes - $1),
+              updated_at = now()
+        where id = $2`,
+      [rows[0].original_size_bytes, rows[0].event_id],
+    );
   }
 
   // A host visibility decision resolves any open reports on the photo.
@@ -556,10 +588,6 @@ export async function setPhotoVisibility(input: {
   ]);
 }
 
-const EVENT_SELECT_COLUMNS = `id, public_id, owner_user_id, join_token, name,
-  template, status, plan, starts_at, ends_at, upload_closes_at,
-  gallery_expires_at, language, welcome_message, pin_hash, collect_socials,
-  storage_limit_bytes, storage_used_bytes`;
 
 const DEFAULT_EVENT_STORAGE_LIMIT_BYTES = 5 * 1024 * 1024 * 1024;
 
@@ -616,7 +644,9 @@ export async function createEvent(input: {
     ],
   );
 
-  return mapEventRow(rows[0]);
+  const event = mapEventRow(rows[0]);
+  logger.info("event_created", { event_id: event.id, public_id: event.publicId, owner_user_id: input.ownerUserId });
+  return event;
 }
 
 export async function getEventsByOwner(
@@ -706,7 +736,9 @@ export async function activateEvent(publicId: string): Promise<EventRecord> {
     throw new Error("Event not found.");
   }
 
-  return mapEventRow(rows[0]);
+  const event = mapEventRow(rows[0]);
+  logger.info("event_activated", { public_id: publicId, event_id: event.id });
+  return event;
 }
 
 export async function createGuestParticipant(input: {

@@ -1,5 +1,6 @@
 import { getDatabasePool } from "@/server/db";
 import { createSignedPhotoReadUrl } from "@/server/r2";
+import { logger } from "@/server/logger";
 import type { SmartAlbum } from "@/types/domain";
 
 type AlbumRow = {
@@ -143,52 +144,58 @@ export async function getSmartAlbums(eventId: string): Promise<SmartAlbum[]> {
     ),
   ]);
 
-  const albums: SmartAlbum[] = [];
+  const t0 = Date.now();
 
-  for (const row of uploaderResult.rows) {
-    const coverThumbnailUrl = row.cover_thumbnail_key
-      ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
-      : "";
-    albums.push({
-      id: `uploader-${row.filter_value}`,
-      type: "by_uploader",
-      label: row.label,
-      photoCount: toNumber(row.photo_count),
-      coverThumbnailUrl,
-      filterKey: "participantId",
-      filterValue: row.filter_value,
-    });
-  }
+  // Resolve all cover URLs in parallel across all album types.
+  const [uploaderAlbums, dateAlbums, tagAlbums] = await Promise.all([
+    Promise.all(
+      uploaderResult.rows.map(async (row) => ({
+        id: `uploader-${row.filter_value}`,
+        type: "by_uploader" as const,
+        label: row.label,
+        photoCount: toNumber(row.photo_count),
+        coverThumbnailUrl: row.cover_thumbnail_key
+          ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
+          : "",
+        filterKey: "participantId" as const,
+        filterValue: row.filter_value,
+      })),
+    ),
+    Promise.all(
+      dateResult.rows.map(async (row) => ({
+        id: `date-${row.filter_value}`,
+        type: "by_date" as const,
+        label: row.label,
+        photoCount: toNumber(row.photo_count),
+        coverThumbnailUrl: row.cover_thumbnail_key
+          ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
+          : "",
+        filterKey: "date" as const,
+        filterValue: row.filter_value,
+      })),
+    ),
+    Promise.all(
+      tagResult.rows.map(async (row) => ({
+        id: `tag-${row.filter_value}`,
+        type: "by_tag" as const,
+        label: `Tagged: ${row.label}`,
+        photoCount: toNumber(row.photo_count),
+        coverThumbnailUrl: row.cover_thumbnail_key
+          ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
+          : "",
+        filterKey: "taggedParticipantId" as const,
+        filterValue: row.filter_value,
+      })),
+    ),
+  ]);
 
-  for (const row of dateResult.rows) {
-    const coverThumbnailUrl = row.cover_thumbnail_key
-      ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
-      : "";
-    albums.push({
-      id: `date-${row.filter_value}`,
-      type: "by_date",
-      label: row.label,
-      photoCount: toNumber(row.photo_count),
-      coverThumbnailUrl,
-      filterKey: "date",
-      filterValue: row.filter_value,
-    });
-  }
+  logger.debug("smart_albums_resolved", {
+    event_id: eventId,
+    uploader_count: uploaderAlbums.length,
+    date_count: dateAlbums.length,
+    tag_count: tagAlbums.length,
+    duration_ms: Date.now() - t0,
+  });
 
-  for (const row of tagResult.rows) {
-    const coverThumbnailUrl = row.cover_thumbnail_key
-      ? await createSignedPhotoReadUrl(row.cover_thumbnail_key)
-      : "";
-    albums.push({
-      id: `tag-${row.filter_value}`,
-      type: "by_tag",
-      label: `Tagged: ${row.label}`,
-      photoCount: toNumber(row.photo_count),
-      coverThumbnailUrl,
-      filterKey: "taggedParticipantId",
-      filterValue: row.filter_value,
-    });
-  }
-
-  return albums;
+  return [...uploaderAlbums, ...dateAlbums, ...tagAlbums];
 }

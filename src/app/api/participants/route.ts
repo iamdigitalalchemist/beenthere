@@ -7,6 +7,8 @@ import {
   createParticipantForSession,
   updateParticipantProfile,
 } from "@/server/sessions";
+import { logger } from "@/server/logger";
+import * as Sentry from "@sentry/nextjs";
 import type { GuestSocialHandles } from "@/types/domain";
 
 export async function POST(request: Request) {
@@ -51,11 +53,21 @@ export async function POST(request: Request) {
       secureCookies: isSecureCookieContext(request),
     });
 
+    logger.info("participant_joined", {
+      event_id: body.eventId,
+      participant_id: result.participant.id,
+    });
+
     return NextResponse.json({
       participant: result.participant,
       recoveryCode: result.recoveryCode,
     });
   } catch (error) {
+    Sentry.captureException(error);
+    logger.error("participant_join_failed", {
+      event_id: body.eventId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       {
         error:
@@ -92,6 +104,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ participant });
   } catch (error) {
+    Sentry.captureException(error);
     return NextResponse.json(
       {
         error:

@@ -10,6 +10,142 @@ import type {
 } from "@/types/domain";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 
+// ─── Add-all-to-album sheet ──────────────────────────────────────────────────
+
+function AddAllToAlbumSheet({
+  photoIds,
+  customAlbums,
+  eventPublicId,
+  onClose,
+}: {
+  photoIds: string[];
+  customAlbums: CustomAlbum[];
+  eventPublicId: string;
+  onClose: () => void;
+}) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [done, setDone] = useState<Set<string>>(new Set());
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [albums, setAlbums] = useState(customAlbums);
+
+  async function addAll(albumId: string) {
+    setSaving(albumId);
+    const res = await fetch(`/api/events/${eventPublicId}/albums/${albumId}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoIds }),
+    });
+    setSaving(null);
+    if (res.ok) setDone((prev) => new Set([...prev, albumId]));
+  }
+
+  async function createAndAdd() {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    setSaving("__new__");
+
+    const res = await fetch(`/api/events/${eventPublicId}/albums`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    if (!res.ok) { setSaving(null); return; }
+    const data = (await res.json()) as { id: string; name: string };
+
+    await fetch(`/api/events/${eventPublicId}/albums/${data.id}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoIds }),
+    });
+
+    setSaving(null);
+    const newAlbum: CustomAlbum = { id: data.id, name: data.name, photoCount: photoIds.length, coverThumbnailUrl: "", createdAt: new Date().toISOString() };
+    setAlbums((prev) => [newAlbum, ...prev]);
+    setDone((prev) => new Set([...prev, data.id]));
+    setNewName("");
+    setCreating(false);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="w-full max-w-sm rounded-t-[2rem] bg-white px-5 pb-8 pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem]">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-ink">Add to album</h2>
+            <p className="text-xs text-ink-muted">{photoIds.length} photos</p>
+          </div>
+          <button className="rounded-full p-2 text-ink-muted transition hover:bg-black/5 hover:text-ink" onClick={onClose} type="button">✕</button>
+        </div>
+
+        {albums.length === 0 && !creating ? (
+          <p className="mb-4 text-sm text-ink-muted">No albums yet. Create one below.</p>
+        ) : (
+          <ul className="mb-3 max-h-56 space-y-1.5 overflow-y-auto">
+            {albums.map((album) => {
+              const isDone = done.has(album.id);
+              return (
+                <li key={album.id}>
+                  <button
+                    className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${isDone ? "bg-accent/10 ring-1 ring-accent/30" : "bg-black/5 hover:bg-black/8"}`}
+                    disabled={saving === album.id || isDone}
+                    onClick={() => void addAll(album.id)}
+                    type="button"
+                  >
+                    <span className="text-lg">{isDone ? "✅" : "📁"}</span>
+                    <span className="flex-1 truncate text-sm font-semibold text-ink">{album.name}</span>
+                    {saving === album.id && <span className="text-xs text-ink-muted">Adding…</span>}
+                    {isDone && <span className="text-xs font-semibold text-accent">Added</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {creating ? (
+          <div className="space-y-2">
+            <input
+              autoFocus
+              className="w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void createAndAdd(); if (e.key === "Escape") setCreating(false); }}
+              placeholder="Album name…"
+              value={newName}
+            />
+            <div className="flex gap-2">
+              <button
+                className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+                disabled={!newName.trim() || saving === "__new__"}
+                onClick={() => void createAndAdd()}
+                type="button"
+              >
+                {saving === "__new__" ? "Creating…" : "Create & add all"}
+              </button>
+              <button
+                className="rounded-full border border-black/10 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95"
+                onClick={() => setCreating(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            className="mt-1 w-full rounded-full border border-dashed border-black/20 py-2.5 text-sm font-semibold text-ink-muted transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
+            onClick={() => setCreating(true)}
+            type="button"
+          >
+            + New album
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 type SmartAlbumsProps = {
   albums: SmartAlbum[];
   customAlbums: CustomAlbum[];
@@ -180,6 +316,7 @@ export function SmartAlbums({
   const [showCreate, setShowCreate] = useState(false);
   const [renamingAlbum, setRenamingAlbum] = useState<CustomAlbum | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [addAllAlbum, setAddAllAlbum] = useState<{ photoIds: string[] } | null>(null);
 
   const activeSmartAlbum = albums.find((a) => a.id === activeSmartId) ?? null;
   const activeCustomAlbum = customAlbums.find((a) => a.id === activeCustomId) ?? null;
@@ -394,43 +531,69 @@ export function SmartAlbums({
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {smartByType[section.type].map((album) => (
-                <button
-                  className="group overflow-hidden rounded-3xl bg-white text-left shadow-sm ring-1 ring-black/5 transition hover:ring-accent/30 active:scale-[0.98]"
+                <div
+                  className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition hover:ring-accent/30"
                   key={album.id}
-                  onClick={() => setActiveSmartId(album.id)}
-                  type="button"
                 >
-                  <div className="aspect-[4/3] bg-black/5">
-                    {album.coverThumbnailUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        alt={album.label}
-                        className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                        src={album.coverThumbnailUrl}
-                      />
-                    ) : (
-                      <div className="grid h-full place-items-center text-2xl">
-                        {smartTypeEmoji[album.type]}
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    className="block w-full text-left active:scale-[0.99]"
+                    onClick={() => setActiveSmartId(album.id)}
+                    type="button"
+                  >
+                    <div className="aspect-[4/3] bg-black/5">
+                      {album.coverThumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          alt={album.label}
+                          className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                          src={album.coverThumbnailUrl}
+                        />
+                      ) : (
+                        <div className="grid h-full place-items-center text-2xl">
+                          {smartTypeEmoji[album.type]}
+                        </div>
+                      )}
+                    </div>
+                  </button>
                   <div className="flex items-center justify-between gap-2 p-4">
-                    <div className="min-w-0">
+                    <button
+                      className="min-w-0 text-left transition hover:text-accent active:scale-[0.98]"
+                      onClick={() => setActiveSmartId(album.id)}
+                      type="button"
+                    >
                       <p className="truncate font-semibold text-ink">{album.label}</p>
                       <p className="text-xs text-ink-muted">
                         {album.photoCount} photo{album.photoCount !== 1 ? "s" : ""}
                       </p>
+                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <button
+                        className="rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
+                        onClick={() => {
+                          const photoIds = allPhotos
+                            .filter((p) => {
+                              if (album.filterKey === "participantId") return p.participantId === album.filterValue;
+                              if (album.filterKey === "date") return (p.takenAt ?? p.uploadedAt).slice(0, 10) === album.filterValue;
+                              return true;
+                            })
+                            .map((p) => p.id);
+                          setAddAllAlbum({ photoIds });
+                        }}
+                        title="Add all to album"
+                        type="button"
+                      >
+                        + Album
+                      </button>
+                      <a
+                        className="shrink-0 rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
+                        download
+                        href={buildSmartExportUrl(album)}
+                      >
+                        ZIP ↓
+                      </a>
                     </div>
-                    <a
-                      className="shrink-0 rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
-                      download
-                      href={buildSmartExportUrl(album)}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      ZIP ↓
-                    </a>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -468,6 +631,15 @@ export function SmartAlbums({
             setRenamingAlbum(null);
             router.refresh();
           }}
+        />
+      )}
+
+      {addAllAlbum && (
+        <AddAllToAlbumSheet
+          customAlbums={customAlbums}
+          eventPublicId={eventPublicId}
+          onClose={() => setAddAllAlbum(null)}
+          photoIds={addAllAlbum.photoIds}
         />
       )}
     </div>

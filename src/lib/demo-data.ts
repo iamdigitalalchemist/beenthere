@@ -21,6 +21,7 @@ export const DEMO_EVENT: EventRecord = {
   collectSocials: false,
   storageLimitBytes: 25 * 1024 * 1024 * 1024,
   storageUsedBytes: 148 * 1024 * 1024,
+  uploadPolicy: "open" as const,
 };
 
 export const DEMO_PHOTOS: PhotoRecord[] = [
@@ -30,6 +31,7 @@ export const DEMO_PHOTOS: PhotoRecord[] = [
     participantId: "participant_demo_001",
     status: "ready",
     visibility: "visible",
+    inGallery: true,
     originalKey: "demo/originals/photo-001.jpg",
     thumbnailUrl:
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=480&q=75",
@@ -48,6 +50,7 @@ export const DEMO_PHOTOS: PhotoRecord[] = [
     participantId: "participant_demo_002",
     status: "ready",
     visibility: "visible",
+    inGallery: true,
     originalKey: "demo/originals/photo-002.jpg",
     thumbnailUrl:
       "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=480&q=75",
@@ -66,6 +69,7 @@ export const DEMO_PHOTOS: PhotoRecord[] = [
     participantId: "participant_demo_003",
     status: "ready",
     visibility: "visible",
+    inGallery: true,
     originalKey: "demo/originals/photo-003.jpg",
     thumbnailUrl:
       "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=480&q=75",
