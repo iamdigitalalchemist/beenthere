@@ -462,7 +462,7 @@ export function PhotoDetailView({
         </div>
 
         <div
-          className="relative mt-5 touch-pan-y select-none"
+          className="group relative mt-5 touch-pan-y select-none overflow-hidden rounded-[2rem]"
           onTouchCancel={() => { setSwipeDx(0); touchStartX.current = null; }}
           onTouchEnd={(e) => {
             const dx = swipeDx;
@@ -481,19 +481,20 @@ export function PhotoDetailView({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             alt={`Photo by ${uploaderName}`}
-            className="lightbox-photo-enter aspect-[4/5] w-full rounded-[2rem] bg-border object-cover shadow-soft"
+            className="lightbox-photo-enter aspect-[4/5] w-full bg-border object-cover shadow-soft"
             key={photo.id}
             src={photo.previewUrl || photo.thumbnailUrl || undefined}
             style={{
-              transform: swipeDx ? `translateX(${swipeDx * 0.35}px)` : undefined,
-              transition: swipeDx ? "none" : "transform 0.2s ease",
+              transform: swipeDx ? `translateX(${swipeDx * 0.4}px) rotate(${swipeDx * 0.01}deg)` : undefined,
+              transition: swipeDx ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
             }}
           />
           {activeIndex > 0 && (
             <button
               aria-label="Previous photo"
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              className="absolute left-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-all duration-200 active:scale-95 opacity-0 group-hover:opacity-100 focus:opacity-100"
               onClick={() => onNavigate(activeIndex - 1)}
+              style={{ background: "rgba(0,0,0,.50)" }}
               type="button"
             >
               ‹
@@ -502,8 +503,9 @@ export function PhotoDetailView({
           {activeIndex < photos.length - 1 && (
             <button
               aria-label="Next photo"
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-95"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex size-9 items-center justify-center rounded-full text-white backdrop-blur-sm transition-all duration-200 active:scale-95 opacity-0 group-hover:opacity-100 focus:opacity-100"
               onClick={() => onNavigate(activeIndex + 1)}
+              style={{ background: "rgba(0,0,0,.50)" }}
               type="button"
             >
               ›

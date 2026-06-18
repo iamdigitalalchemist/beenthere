@@ -37,6 +37,11 @@ body {
   overflow-x: clip;
 }
 
+/* Show nav arrows when the photo container is being touched on mobile */
+.group:active .group-hover\:opacity-100 {
+  opacity: 1;
+}
+
 @keyframes gallery-photo-enter {
   from {
     opacity: 0;
