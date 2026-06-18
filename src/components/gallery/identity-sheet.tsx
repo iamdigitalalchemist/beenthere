@@ -98,12 +98,20 @@ export function IdentitySheet({
   const canSubmit =
     Boolean(displayName.trim()) && (isSignUp ? consentAccepted : true);
 
-  function handlePhotoSelect(file: File | null) {
-    if (!file) {
-      onProfilePhotoChange(null);
-      return;
-    }
+  const inputStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,.06)",
+    border: "1px solid rgba(255,255,255,.10)",
+    color: "rgba(255,255,255,.92)",
+    borderRadius: "16px",
+    padding: "12px 16px",
+    fontSize: "14px",
+    outline: "none",
+    width: "100%",
+    minHeight: "44px",
+  };
 
+  function handlePhotoSelect(file: File | null) {
+    if (!file) { onProfilePhotoChange(null); return; }
     onProfilePhotoChange(file, URL.createObjectURL(file));
   }
 
@@ -111,25 +119,33 @@ export function IdentitySheet({
     <div className="sheet-overlay fixed inset-0 z-40 isolate flex items-end justify-center sm:items-center sm:p-4">
       <button
         aria-label="Close guest details"
-        className="absolute inset-0 z-0 bg-ink/50 backdrop-blur-sm touch-manipulation"
+        className="absolute inset-0 z-0 touch-manipulation"
         onClick={onClose}
+        style={{ background: "rgba(0,0,0,.60)", backdropFilter: "blur(8px)" }}
         type="button"
       />
       <form
-        className="sheet-panel relative z-10 max-h-[92vh] w-full max-w-md touch-manipulation overflow-y-auto rounded-t-[2rem] bg-white/90 backdrop-blur-xl px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem] sm:p-6"
+        className="sheet-panel relative z-10 max-h-[92vh] w-full max-w-md touch-manipulation overflow-y-auto rounded-t-[2rem] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 shadow-2xl sm:rounded-[2rem] sm:p-6"
         onClick={(event) => event.stopPropagation()}
         onPointerDown={(event) => event.stopPropagation()}
         onSubmit={onSubmit}
+        style={{
+          background: "rgba(15,16,35,.96)",
+          border: "1px solid rgba(255,255,255,.08)",
+          backdropFilter: "blur(24px)",
+        }}
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
-        <h2 className="text-xl font-bold text-ink">
-          {isSignUp
-            ? showCodeLogin
-              ? "Welcome back"
-              : "Join as a guest"
-            : "Your guest profile"}
+        <div
+          className="mx-auto mb-4 h-1 w-10 rounded-full sm:hidden"
+          style={{ background: "rgba(255,255,255,.15)" }}
+        />
+        <h2
+          className="text-xl font-bold"
+          style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.01em" }}
+        >
+          {isSignUp ? (showCodeLogin ? "Welcome back" : "Join as a guest") : "Your guest profile"}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.45)" }}>
           {isSignUp
             ? showCodeLogin
               ? "Enter the guest code you saved when you first joined."
@@ -138,105 +154,99 @@ export function IdentitySheet({
         </p>
 
         {isSignUp ? (
-          <div className="mt-5 flex rounded-full bg-black/5 p-1">
-            <button
-              className={`min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
-                identityMode === "signup"
-                  ? "bg-white text-ink shadow-sm"
-                  : "text-ink-muted"
-              }`}
-              onClick={() => onIdentityModeChange("signup")}
-              type="button"
-            >
-              New guest
-            </button>
-            <button
-              className={`min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
-                identityMode === "code"
-                  ? "bg-white text-ink shadow-sm"
-                  : "text-ink-muted"
-              }`}
-              onClick={() => onIdentityModeChange("code")}
-              type="button"
-            >
-              Guest code
-            </button>
+          <div className="mt-5 flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
+            {(["signup", "code"] as const).map((mode) => (
+              <button
+                className="min-h-10 flex-1 rounded-full px-3 py-2 text-sm font-semibold transition"
+                key={mode}
+                onClick={() => onIdentityModeChange(mode)}
+                style={identityMode === mode
+                  ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
+                  : { color: "rgba(255,255,255,.40)" }
+                }
+                type="button"
+              >
+                {mode === "signup" ? "New guest" : "Guest code"}
+              </button>
+            ))}
           </div>
         ) : null}
 
         {errorMessage ? (
-          <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent">
+          <p
+            className="mt-4 rounded-2xl px-4 py-3 text-sm"
+            style={{ background: "rgba(255,109,174,.12)", border: "1px solid rgba(255,109,174,.20)", color: "#FF6DAE" }}
+          >
             {errorMessage}
           </p>
         ) : null}
 
         {showCodeLogin ? (
           <div className="mt-6 space-y-4">
-            <label className="block text-sm font-medium text-ink" htmlFor="guest-code">
+            <label className="block text-sm font-medium" htmlFor="guest-code" style={{ color: "rgba(255,255,255,.55)" }}>
               Guest code
               <input
                 autoCapitalize="characters"
                 autoComplete="off"
                 autoCorrect="off"
-                className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-center font-mono text-2xl font-semibold tracking-[0.35em] text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                 id="guest-code"
                 inputMode="text"
                 maxLength={7}
-                onChange={(event) =>
-                  onGuestCodeChange(
-                    formatGuestRecoveryCode(event.target.value),
-                  )
-                }
+                onChange={(event) => onGuestCodeChange(formatGuestRecoveryCode(event.target.value))}
                 placeholder="ABC 123"
                 spellCheck={false}
+                style={{ ...inputStyle, textAlign: "center", fontSize: "22px", fontFamily: "monospace", fontWeight: 600, letterSpacing: "0.35em", marginTop: "8px" }}
                 type="text"
                 value={guestCode}
               />
             </label>
             <button
-              className="min-h-11 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-11 w-full rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               disabled={!canResumeWithCode || isResuming}
               onClick={onResume}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
               type="button"
             >
               {isResuming ? "Opening profile..." : "Continue with guest code"}
             </button>
             <button
-              className="w-full text-sm font-semibold text-accent transition hover:text-accent-hover"
+              className="w-full text-sm font-semibold transition"
               onClick={onToggleNamePicker}
+              style={{
+                background: "linear-gradient(135deg, #FF6AA9, #B65DFF)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
               type="button"
             >
-              {showNamePicker
-                ? "Hide guest list"
-                : "Or pick your name from the guest list"}
+              {showNamePicker ? "Hide guest list" : "Or pick your name from the guest list"}
             </button>
             {showNamePicker ? (
-              <div className="space-y-2 border-t border-border pt-4">
+              <div className="space-y-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,.08)" }}>
                 {resumeCandidates.length === 0 ? (
-                  <p className="rounded-2xl border border-border bg-canvas px-4 py-3 text-sm text-ink-muted">
+                  <p
+                    className="rounded-2xl px-4 py-3 text-sm"
+                    style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.40)" }}
+                  >
                     No guest profiles yet. Join as a new guest instead.
                   </p>
                 ) : (
                   resumeCandidates.map((candidate) => {
                     const isSelected = selectedResumeId === candidate.id;
-
                     return (
                       <button
-                        className={`flex min-h-11 w-full items-center gap-3 rounded-2xl border px-3 py-2 text-left transition active:scale-[0.99] ${
-                          isSelected
-                            ? "border-accent bg-accent-soft"
-                            : "border-border bg-canvas hover:border-accent/30"
-                        }`}
+                        className="flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition active:scale-[0.99]"
                         key={candidate.id}
                         onClick={() => onSelectResumeCandidate(candidate.id)}
+                        style={isSelected
+                          ? { background: "rgba(255,109,174,.12)", border: "1px solid rgba(255,109,174,.25)" }
+                          : { background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }
+                        }
                         type="button"
                       >
-                        <ParticipantAvatar
-                          name={candidate.displayName}
-                          photoUrl={candidate.profilePhotoUrl}
-                          size="sm"
-                        />
-                        <span className="truncate text-sm font-semibold text-ink">
+                        <ParticipantAvatar name={candidate.displayName} photoUrl={candidate.profilePhotoUrl} size="sm" />
+                        <span className="truncate text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>
                           {candidate.displayName}
                         </span>
                       </button>
@@ -244,9 +254,10 @@ export function IdentitySheet({
                   })
                 )}
                 <button
-                  className="min-h-11 w-full rounded-full border border-border px-5 py-3 text-sm font-semibold text-ink transition hover:border-accent/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-11 w-full rounded-full px-5 py-3 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={!selectedResumeId || isResuming}
                   onClick={onResume}
+                  style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
                   type="button"
                 >
                   Continue as selected guest
@@ -267,23 +278,24 @@ export function IdentitySheet({
               </div>
             ) : null}
             {hasParticipant && !recoveryCode && onRegenerateRecoveryCode ? (
-              <div className="mt-6 rounded-2xl border border-border bg-canvas px-4 py-4">
-                <p className="text-sm font-semibold text-ink">
+              <div
+                className="mt-6 rounded-2xl px-4 py-4"
+                style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
+              >
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>
                   Need your guest code?
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-ink-muted">
-                  Create a new code to return on another phone. Your old code
-                  will stop working.
+                <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.40)" }}>
+                  Create a new code to return on another phone. Your old code will stop working.
                 </p>
                 <button
-                  className="mt-3 min-h-11 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-[0.98] disabled:opacity-40"
+                  className="mt-3 min-h-11 rounded-full px-5 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
                   disabled={isRegeneratingCode}
                   onClick={onRegenerateRecoveryCode}
+                  style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
                   type="button"
                 >
-                  {isRegeneratingCode
-                    ? "Creating guest code..."
-                    : "Create guest code"}
+                  {isRegeneratingCode ? "Creating guest code..." : "Create guest code"}
                 </button>
               </div>
             ) : null}
@@ -295,27 +307,36 @@ export function IdentitySheet({
                   photoUrl={profilePhotoPreview}
                   size="lg"
                 />
-                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/0 text-xs font-semibold text-transparent transition group-hover:bg-ink/45 group-hover:text-white">
+                <span
+                  className="absolute inset-0 flex items-center justify-center rounded-full text-xs font-semibold text-transparent transition group-hover:text-white"
+                  style={{ background: "rgba(0,0,0,0)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,.45)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0)")}
+                >
                   Edit
                 </span>
                 <input
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
-                  onChange={(event) =>
-                    handlePhotoSelect(event.target.files?.[0] ?? null)
-                  }
+                  onChange={(event) => handlePhotoSelect(event.target.files?.[0] ?? null)}
                   type="file"
                 />
               </label>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-ink">Profile photo</p>
-                <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>Profile photo</p>
+                <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.40)" }}>
                   Optional. We&apos;ll use your initials if you skip this.
                 </p>
                 {profilePhotoPreview ? (
                   <button
-                    className="mt-2 text-sm font-semibold text-accent"
+                    className="mt-2 text-sm font-semibold transition"
                     onClick={() => handlePhotoSelect(null)}
+                    style={{
+                      background: "linear-gradient(135deg, #FF6AA9, #B65DFF)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
                     type="button"
                   >
                     Remove photo
@@ -324,41 +345,33 @@ export function IdentitySheet({
               </div>
             </div>
 
-            <label
-              className="mt-6 block text-sm font-medium text-ink"
-              htmlFor="display-name"
-            >
+            <label className="mt-6 block text-sm font-medium" htmlFor="display-name" style={{ color: "rgba(255,255,255,.55)" }}>
               Display name
               <input
-                className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
                 id="display-name"
                 onChange={(event) => onDisplayNameChange(event.target.value)}
                 placeholder="Aunt Lisa, Tom, Amira..."
+                style={{ ...inputStyle, fontSize: "16px", marginTop: "8px" }}
                 value={displayName}
               />
             </label>
 
             {collectSocials && (
               <fieldset className="mt-6">
-                <legend className="text-sm font-semibold text-ink">
+                <legend className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.70)" }}>
                   Social accounts
                 </legend>
-                <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+                <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.35)" }}>
                   Optional. Saved for future sharing and auto-tagging features.
                 </p>
                 <div className="mt-4 space-y-3">
                   {SOCIAL_FIELDS.map((field) => (
-                    <label
-                      className="block text-sm text-ink-muted"
-                      key={field.key}
-                    >
+                    <label className="block text-sm" key={field.key} style={{ color: "rgba(255,255,255,.45)" }}>
                       {field.label}
                       <input
-                        className="mt-2 min-h-11 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
-                        onChange={(event) =>
-                          onSocialHandleChange(field.key, event.target.value)
-                        }
+                        onChange={(event) => onSocialHandleChange(field.key, event.target.value)}
                         placeholder={field.placeholder}
+                        style={{ ...inputStyle, marginTop: "6px" }}
                         value={socialHandles[field.key] ?? ""}
                       />
                     </label>
@@ -368,7 +381,10 @@ export function IdentitySheet({
             )}
 
             {isSignUp ? (
-              <label className="mt-6 flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border border-black/8 bg-black/5 px-3 py-3 text-sm leading-relaxed text-ink-muted">
+              <label
+                className="mt-6 flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-sm leading-relaxed"
+                style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.45)" }}
+              >
                 <input
                   checked={consentAccepted}
                   className="mt-0.5 size-5 shrink-0 accent-accent"
@@ -376,30 +392,30 @@ export function IdentitySheet({
                   type="checkbox"
                 />
                 <span>
-                  I confirm I have the right to share these photos and
-                  understand they&apos;ll be visible according to this
-                  event&apos;s settings.
+                  I confirm I have the right to share these photos and understand they&apos;ll be visible according to this event&apos;s settings.
                 </span>
               </label>
             ) : null}
 
             <div className="mt-6 flex flex-col gap-3">
               <button
-                className="min-h-11 w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-surface transition hover:bg-ink/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-11 w-full rounded-full px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={!canSubmit}
+                style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.25)" }}
                 type="submit"
               >
                 {isSignUp ? "Continue" : "Save changes"}
               </button>
               {isSignUp && !consentAccepted && displayName.trim() ? (
-                <p className="text-center text-xs text-ink-muted">
+                <p className="text-center text-xs" style={{ color: "rgba(255,255,255,.30)" }}>
                   Accept the consent above to continue.
                 </p>
               ) : null}
               {hasParticipant ? (
                 <button
-                  className="min-h-11 w-full rounded-full border border-black/10 bg-black/5 px-5 py-3 text-sm font-semibold text-ink-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 active:scale-[0.98]"
+                  className="min-h-11 w-full rounded-full px-5 py-3 text-sm font-semibold transition active:scale-[0.98]"
                   onClick={onLogOut}
+                  style={{ background: "rgba(255,95,123,.08)", border: "1px solid rgba(255,95,123,.15)", color: "#FF8FA3" }}
                   type="button"
                 >
                   Log out

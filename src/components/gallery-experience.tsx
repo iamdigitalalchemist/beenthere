@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import Image from "next/image";
 import { HeartIcon } from "@/components/gallery/heart-icon";
 import { GuestRecoveryReveal } from "@/components/gallery/guest-recovery-reveal";
 import { ViewSizeToggle, type ViewSize } from "@/components/view-size-toggle";
@@ -1156,20 +1157,29 @@ export function GalleryExperience({
       />
       <header
         className="sticky top-0 z-40"
-        style={{ background: "rgba(9,9,24,.85)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
+        style={{ background: "rgba(9,9,24,.90)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <div className="min-w-0 flex-1">
+        {/* Top row: logo + event name + guest profile */}
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2 sm:px-6">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Image
+              alt="beenThere"
+              className="shrink-0 brightness-0 invert opacity-70"
+              height={18}
+              src="/logo.webp"
+              width={72}
+            />
+            <span style={{ color: "rgba(255,255,255,.20)" }}>·</span>
             <h1
-              className="truncate text-base font-bold tracking-tight sm:text-lg"
-              style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.01em" }}
+              className="truncate text-sm font-semibold sm:text-base"
+              style={{ color: "rgba(255,255,255,.70)", letterSpacing: "-0.01em" }}
             >
               {event.name}
             </h1>
           </div>
           <button
             aria-label={participant ? "Open guest profile" : "Join as a guest"}
-            className="flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-sm font-semibold transition active:scale-[0.98]"
+            className="flex shrink-0 touch-manipulation items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-sm font-semibold transition active:scale-[0.98]"
             style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             onClick={() => {
               setIdentityError(null);
@@ -1192,7 +1202,7 @@ export function GalleryExperience({
           </button>
         </div>
 
-        <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-2 px-5 pb-4 sm:px-6">
+        <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-2 px-4 pb-3 sm:px-6">
           {/* Filter row: pills + view toggle + select */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
