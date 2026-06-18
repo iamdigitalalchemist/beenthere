@@ -55,10 +55,11 @@ export function SiteNav({ user }: Props) {
           <Link className="transition hover:text-white" href="#pricing">Pricing</Link>
         </nav>
 
-        {/* Right side — mobile: Get started / Sign in; desktop: full controls */}
+        {/* Right side */}
         <div className="flex items-center gap-2 lg:gap-3">
           {user ? (
             <>
+              {/* Desktop: text link + sign out button */}
               <Link
                 className="hidden text-sm font-medium transition hover:text-white lg:block"
                 href="/dashboard"
@@ -66,6 +67,16 @@ export function SiteNav({ user }: Props) {
               >
                 Dashboard
               </Link>
+              <button
+                className="hidden rounded-full px-5 py-2 text-sm font-semibold transition active:scale-95 disabled:opacity-60 hover:brightness-110 lg:block"
+                disabled={signingOut}
+                onClick={handleSignOut}
+                style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
+                type="button"
+              >
+                {signingOut ? "Signing out…" : "Sign out"}
+              </button>
+              {/* Mobile: compact dashboard link only */}
               <Link
                 className="rounded-full px-4 py-2 text-sm font-semibold text-white transition active:scale-95 lg:hidden"
                 href="/dashboard"
@@ -73,15 +84,6 @@ export function SiteNav({ user }: Props) {
               >
                 Dashboard
               </Link>
-              <button
-                className="rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95 disabled:opacity-60 hover:brightness-110 lg:px-5"
-                disabled={signingOut}
-                onClick={handleSignOut}
-                style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
-                type="button"
-              >
-                {signingOut ? "…" : "Sign out"}
-              </button>
             </>
           ) : (
             <>

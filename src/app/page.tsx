@@ -110,6 +110,15 @@ export default async function Home() {
 
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center justify-center px-6 pb-20 pt-28 text-center sm:pb-24 sm:pt-36 lg:py-52 lg:px-8">
 
+          {/* Mobile icon */}
+          <Image
+            alt="beenThere"
+            className="mb-6 lg:hidden"
+            height={44}
+            src="/icon-white.webp"
+            width={44}
+          />
+
           {/* Eyebrow pill */}
           <div
             className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide"
