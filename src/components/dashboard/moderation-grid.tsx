@@ -849,10 +849,22 @@ export function ModerationGrid({
 
           const isSelected = selectedIds.has(photo.id);
 
+          const longPressTimer = { current: null as ReturnType<typeof setTimeout> | null };
+
           return (
             <article
               className={`group overflow-hidden transition ${viewSize === "compact" ? "rounded-2xl" : "rounded-3xl"}`}
               key={photo.id}
+              onTouchCancel={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+              onTouchEnd={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+              onTouchMove={() => { if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; } }}
+              onTouchStart={() => {
+                if (selectMode) return;
+                longPressTimer.current = setTimeout(() => {
+                  setSelectMode(true);
+                  setSelectedIds(new Set([photo.id]));
+                }, 500);
+              }}
               style={{
                 WebkitTouchCallout: "none" as React.CSSProperties["WebkitTouchCallout"],
                 background: "rgba(255,255,255,.04)",

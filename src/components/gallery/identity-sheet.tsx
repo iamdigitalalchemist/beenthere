@@ -10,6 +10,7 @@ import {
   GUEST_CODE_LENGTH,
   normalizeGuestRecoveryCode,
 } from "@/lib/guest-recovery";
+import { LangToggle, useLang } from "@/lib/lang";
 import type { GuestSocialHandles } from "@/types/domain";
 
 export type GuestResumeCandidate = {
@@ -93,6 +94,7 @@ export function IdentitySheet({
   onSubmit,
   onToggleNamePicker,
 }: IdentitySheetProps) {
+  const { t } = useLang();
   const isSignUp = !hasParticipant;
   const showCodeLogin = isSignUp && identityMode === "code";
   const normalizedGuestCode = normalizeGuestRecoveryCode(guestCode);
@@ -141,25 +143,28 @@ export function IdentitySheet({
           className="mx-auto mb-4 h-1 w-10 rounded-full sm:hidden"
           style={{ background: "rgba(255,255,255,.15)" }}
         />
-        <Image
-          alt="beenThere"
-          className="mb-4 brightness-0 invert opacity-60"
-          height={20}
-          src="/logo.webp"
-          width={80}
-        />
+        <div className="mb-4 flex items-center justify-between">
+          <Image
+            alt="beenThere"
+            className="brightness-0 invert opacity-60"
+            height={20}
+            src="/logo.webp"
+            width={80}
+          />
+          <LangToggle />
+        </div>
         <h2
           className="text-xl font-bold"
           style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.01em" }}
         >
-          {isSignUp ? (showCodeLogin ? "Welcome back" : "Join as a guest") : "Your guest profile"}
+          {isSignUp ? (showCodeLogin ? t.welcomeBack : t.joinAsGuest) : t.yourGuestProfile}
         </h2>
         <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.45)" }}>
           {isSignUp
             ? showCodeLogin
-              ? "Enter the guest code you saved when you first joined."
-              : "Add how you want to appear in this gallery before uploading or tagging."
-            : "Update how you appear in this gallery."}
+              ? t.subtitleCode
+              : t.subtitleSignup
+            : t.subtitleProfile}
         </p>
 
         {isSignUp ? (
@@ -167,8 +172,8 @@ export function IdentitySheet({
             className="mt-5 rounded-full"
             onChange={onIdentityModeChange}
             options={[
-              { id: "signup" as const, label: "New guest" },
-              { id: "code" as const, label: "Guest code" },
+              { id: "signup" as const, label: t.newGuest },
+              { id: "code" as const, label: t.guestCode },
             ]}
             value={identityMode}
           />
@@ -186,7 +191,7 @@ export function IdentitySheet({
         {showCodeLogin ? (
           <div className="mt-6 space-y-4">
             <label className="block text-sm font-medium" htmlFor="guest-code" style={{ color: "rgba(255,255,255,.55)" }}>
-              Guest code
+              {t.guestCodeLabel}
               <input
                 autoCapitalize="characters"
                 autoComplete="off"
@@ -209,7 +214,7 @@ export function IdentitySheet({
               style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
               type="button"
             >
-              {isResuming ? "Opening profile..." : "Continue with guest code"}
+              {isResuming ? t.openingProfile : t.continueWithCode}
             </button>
             <button
               className="w-full text-sm font-semibold transition"
@@ -222,7 +227,7 @@ export function IdentitySheet({
               }}
               type="button"
             >
-              {showNamePicker ? "Hide guest list" : "Or pick your name from the guest list"}
+              {showNamePicker ? t.hideGuestList : t.orPickName}
             </button>
             {showNamePicker ? (
               <div className="space-y-2 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,.08)" }}>
@@ -231,7 +236,7 @@ export function IdentitySheet({
                     className="rounded-2xl px-4 py-3 text-sm"
                     style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.40)" }}
                   >
-                    No guest profiles yet. Join as a new guest instead.
+                    {t.noGuestsYet}
                   </p>
                 ) : (
                   resumeCandidates.map((candidate) => {
@@ -262,7 +267,7 @@ export function IdentitySheet({
                   style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
                   type="button"
                 >
-                  Continue as selected guest
+                  {t.continueAsSelected}
                 </button>
               </div>
             ) : null}
@@ -285,10 +290,10 @@ export function IdentitySheet({
                 style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
               >
                 <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>
-                  Need your guest code?
+                  {t.needGuestCode}
                 </p>
                 <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.40)" }}>
-                  Create a new code to return on another phone. Your old code will stop working.
+                  {t.needGuestCodeHint}
                 </p>
                 <button
                   className="mt-3 min-h-11 rounded-full px-5 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
@@ -297,7 +302,7 @@ export function IdentitySheet({
                   style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
                   type="button"
                 >
-                  {isRegeneratingCode ? "Creating guest code..." : "Create guest code"}
+                  {isRegeneratingCode ? t.creatingGuestCode : t.createGuestCode}
                 </button>
               </div>
             ) : null}
@@ -325,9 +330,9 @@ export function IdentitySheet({
                 />
               </label>
               <div className="min-w-0">
-                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>Profile photo</p>
+                <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>{t.profilePhoto}</p>
                 <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.40)" }}>
-                  Optional. We&apos;ll use your initials if you skip this.
+                  {t.profilePhotoHint}
                 </p>
                 {profilePhotoPreview ? (
                   <button
@@ -341,18 +346,18 @@ export function IdentitySheet({
                     }}
                     type="button"
                   >
-                    Remove photo
+                    {t.removePhoto}
                   </button>
                 ) : null}
               </div>
             </div>
 
             <label className="mt-6 block text-sm font-medium" htmlFor="display-name" style={{ color: "rgba(255,255,255,.55)" }}>
-              Display name
+              {t.displayName}
               <input
                 id="display-name"
                 onChange={(event) => onDisplayNameChange(event.target.value)}
-                placeholder="Aunt Lisa, Tom, Amira..."
+                placeholder={t.displayNamePlaceholder}
                 style={{ ...inputStyle, fontSize: "16px", marginTop: "8px" }}
                 value={displayName}
               />
@@ -361,10 +366,10 @@ export function IdentitySheet({
             {collectSocials && (
               <fieldset className="mt-6">
                 <legend className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.70)" }}>
-                  Social accounts
+                  {t.socialAccounts}
                 </legend>
                 <p className="mt-1 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,.35)" }}>
-                  Optional. Saved for future sharing and auto-tagging features.
+                  {t.socialHint}
                 </p>
                 <div className="mt-4 space-y-3">
                   {SOCIAL_FIELDS.map((field) => (
@@ -394,7 +399,7 @@ export function IdentitySheet({
                   type="checkbox"
                 />
                 <span>
-                  I confirm I have the right to share these photos and understand they&apos;ll be visible according to this event&apos;s settings.
+                  {t.consentText}
                 </span>
               </label>
             ) : null}
@@ -406,11 +411,11 @@ export function IdentitySheet({
                 style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.25)" }}
                 type="submit"
               >
-                {isSignUp ? "Continue" : "Save changes"}
+                {isSignUp ? t.continue : t.saveChanges}
               </button>
               {isSignUp && !consentAccepted && displayName.trim() ? (
                 <p className="text-center text-xs" style={{ color: "rgba(255,255,255,.30)" }}>
-                  Accept the consent above to continue.
+                  {t.acceptConsent}
                 </p>
               ) : null}
               {hasParticipant ? (
@@ -420,7 +425,7 @@ export function IdentitySheet({
                   style={{ background: "rgba(255,95,123,.08)", border: "1px solid rgba(255,95,123,.15)", color: "#FF8FA3" }}
                   type="button"
                 >
-                  Log out
+                  {t.logOut}
                 </button>
               ) : null}
             </div>

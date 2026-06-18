@@ -32,6 +32,8 @@ const inputStyle: React.CSSProperties = {
   fontSize: "16px",
   outline: "none",
   width: "100%",
+  maxWidth: "100%",
+  boxSizing: "border-box",
   transition: "border-color 150ms",
   minHeight: "52px",
 };

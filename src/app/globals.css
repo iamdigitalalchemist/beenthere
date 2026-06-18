@@ -38,8 +38,11 @@ body {
 }
 
 /* Prevent iOS Safari from zooming on input focus (requires font-size >= 16px) */
+/* box-sizing and max-width prevent date inputs from overflowing on iOS */
 input, textarea, select {
   font-size: max(16px, 1em);
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 /* Event card layout */

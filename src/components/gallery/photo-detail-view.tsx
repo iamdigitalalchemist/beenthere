@@ -10,6 +10,7 @@ import {
   writeStoredPhotoTags,
 } from "@/lib/photo-tags-storage";
 import { readJsonResponse } from "@/lib/read-json-response";
+import { useLang } from "@/lib/lang";
 import type { PhotoRecord, PhotoTag } from "@/types/domain";
 
 type GuestOption = {
@@ -61,6 +62,7 @@ export function PhotoDetailView({
   const photo = photos[activeIndex];
   const uploaderName = getUploaderName(photo);
   const [tags, setTags] = useState<PhotoTag[]>([]);
+  const { t } = useLang();
   const [likeCount, setLikeCount] = useState(0);
   const [guestOptions, setGuestOptions] = useState<GuestOption[]>([]);
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -421,28 +423,7 @@ export function PhotoDetailView({
       role="dialog"
       style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 100%)" }}
     >
-      <div className="mx-auto min-h-full w-full max-w-lg px-4 pb-10 pt-4">
-        <header
-          className="sticky top-0 z-10 mb-4 flex items-center justify-between py-2"
-          style={{ background: "rgba(9,9,24,.90)", backdropFilter: "blur(16px)" }}
-        >
-          <button
-            aria-label="Back to gallery"
-            className="tap-target flex size-11 items-center justify-center rounded-2xl text-lg transition active:scale-[0.98]"
-            onClick={onClose}
-            style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
-            type="button"
-          >
-            
-          </button>
-          <h2
-            className="text-base font-semibold"
-            style={{ color: "rgba(255,255,255,.80)", letterSpacing: "-0.01em" }}
-          >
-            Detail Photo
-          </h2>
-          <div className="size-11" />
-        </header>
+      <div className="mx-auto min-h-full w-full max-w-lg px-4 pb-10 pt-16">
 
         <div className="flex items-center gap-3">
           <ParticipantAvatar name={uploaderName} size="md" />
@@ -451,14 +432,13 @@ export function PhotoDetailView({
             <span className="font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>{uploaderName}</span>
           </p>
           <button
-            aria-label="Share photo"
-            className="flex size-11 items-center justify-center rounded-full transition active:scale-95"
-            onClick={() => void handleShare()}
-            style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
-            title="Share photo"
+            aria-label="Close"
+            className="tap-target flex size-11 items-center justify-center rounded-2xl text-lg transition active:scale-[0.98]"
+            onClick={onClose}
+            style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             type="button"
           >
-            <ShareIcon className="size-5" />
+            ✕
           </button>
         </div>
 
@@ -539,7 +519,7 @@ export function PhotoDetailView({
               className="size-4"
               filled={isSaved(photo.id)}
             />
-            {likeCount} {likeCount === 1 ? "like" : "likes"}
+            {likeCount} {likeCount === 1 ? t.like : t.likes}
           </button>
           <button
             className="tap-target inline-flex items-center gap-2.5 rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
@@ -549,7 +529,7 @@ export function PhotoDetailView({
             type="button"
           >
             <DownloadIcon className="size-4" />
-            {isDownloading ? "Downloading…" : "Download"}
+            {isDownloading ? t.downloading : t.download}
           </button>
           <button
             className="tap-target ml-auto text-sm font-semibold underline-offset-2 transition hover:underline"
@@ -557,7 +537,7 @@ export function PhotoDetailView({
             style={{ color: "rgba(255,255,255,.30)" }}
             type="button"
           >
-            Report
+            {t.report}
           </button>
         </div>
 
@@ -568,28 +548,28 @@ export function PhotoDetailView({
           >
             {reportStatus === "sent" ? (
               <p className="text-sm font-medium" style={{ color: "#56D892" }}>
-                Thanks — the photo was reported and hidden until the host reviews it.
+                {t.reportSent}
               </p>
             ) : (
               <>
                 <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.85)" }}>
-                  Report this photo
+                  {t.reportThisPhoto}
                 </p>
                 <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,.40)" }}>
-                  It will be hidden from the gallery until the host reviews it.
+                  {t.reportHiddenHint}
                 </p>
                 <textarea
                   className="mt-3 w-full rounded-xl p-3 text-sm outline-none transition"
                   maxLength={500}
                   onChange={(event) => setReportReason(event.target.value)}
-                  placeholder="Why are you reporting this? (optional)"
+                  placeholder={t.reportPlaceholder}
                   rows={2}
                   style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
                   value={reportReason}
                 />
                 {reportStatus === "error" ? (
                   <p className="mt-2 text-sm font-medium" style={{ color: "#FF8FA3" }}>
-                    Could not send the report. Please try again.
+                    {t.reportError}
                   </p>
                 ) : null}
                 <div className="mt-3 flex gap-2">
@@ -600,7 +580,7 @@ export function PhotoDetailView({
                     style={{ background: "#FF5F7B" }}
                     type="button"
                   >
-                    {reportStatus === "sending" ? "Reporting…" : "Report photo"}
+                    {reportStatus === "sending" ? t.reporting : t.reportPhoto}
                   </button>
                   <button
                     className="rounded-full px-4 py-2 text-sm font-semibold transition"
@@ -608,7 +588,7 @@ export function PhotoDetailView({
                     style={{ color: "rgba(255,255,255,.40)" }}
                     type="button"
                   >
-                    Cancel
+                    {t.cancel}
                   </button>
                 </div>
               </>
@@ -618,14 +598,14 @@ export function PhotoDetailView({
 
         <section className="mt-8">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>Tagged</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>{t.tagged}</h3>
             <button
               className="rounded-full px-4 py-2 text-sm font-semibold transition active:scale-95"
               onClick={() => setShowTagPicker((current) => !current)}
               style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
               type="button"
             >
-              Tag someone
+              {t.tagSomeone}
             </button>
           </div>
 
@@ -652,7 +632,7 @@ export function PhotoDetailView({
             </div>
           ) : (
             <p className="mt-4 text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
-              No one tagged yet. Add guests who appear in this photo.
+              {t.noOneTagged}
             </p>
           )}
 
@@ -664,7 +644,7 @@ export function PhotoDetailView({
               {!currentParticipantId ? (
                 <div className="space-y-3">
                   <p className="text-sm" style={{ color: "rgba(255,255,255,.40)" }}>
-                    Join as a guest to tag people in photos.
+                    {t.joinToTag}
                   </p>
                   {onRequireIdentity ? (
                     <button
@@ -673,19 +653,19 @@ export function PhotoDetailView({
                       style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
                       type="button"
                     >
-                      Add your name
+                      {t.addYourName}
                     </button>
                   ) : null}
                 </div>
               ) : guestsLoading ? (
-                <p className="text-sm" style={{ color: "rgba(255,255,255,.35)" }}>Loading guests…</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,.35)" }}>{t.loadingGuests}</p>
               ) : guestsError ? (
                 <p className="text-sm" style={{ color: "#FF8FA3" }}>{guestsError}</p>
               ) : availableGuests.length === 0 ? (
                 <p className="text-sm" style={{ color: "rgba(255,255,255,.35)" }}>
                   {guestOptions.length <= 1
-                    ? "No other guests have joined yet. Friends need to scan the QR code and add their name first."
-                    : "Everyone else from this event is already tagged."}
+                    ? t.noOtherGuests
+                    : t.everyoneTagged}
                 </p>
               ) : (
                 <ul className="space-y-1">
@@ -703,7 +683,7 @@ export function PhotoDetailView({
                         </span>
                         {taggingGuestId === guest.id ? (
                           <span className="ml-auto text-xs" style={{ color: "rgba(255,255,255,.35)" }}>
-                            Saving…
+                            {t.saving}
                           </span>
                         ) : null}
                       </button>
@@ -717,7 +697,7 @@ export function PhotoDetailView({
 
         {relatedPhotos.length > 0 ? (
           <section className="mt-10">
-            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>Related</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "rgba(255,255,255,.85)", letterSpacing: "-0.01em" }}>{t.related}</h3>
             <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
               {relatedPhotos.map((relatedPhoto) => {
                 const relatedIndex = photos.findIndex((item) => item.id === relatedPhoto.id);

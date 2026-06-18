@@ -33,6 +33,7 @@ import {
   type StoredParticipant,
 } from "@/lib/participant-storage";
 import { SegmentedControl } from "@/components/segmented-control";
+import { LangProvider, LangToggle, useLang } from "@/lib/lang";
 import { readJsonResponse } from "@/lib/read-json-response";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getInitials } from "@/lib/ui";
@@ -187,11 +188,20 @@ function createLocalPhoto(
   };
 }
 
-export function GalleryExperience({
+export function GalleryExperience(props: GalleryExperienceProps) {
+  return (
+    <LangProvider>
+      <GalleryExperienceInner {...props} />
+    </LangProvider>
+  );
+}
+
+function GalleryExperienceInner({
   event,
   initialPhotos,
   uploaderNames,
 }: GalleryExperienceProps) {
+  const { t } = useLang();
   const [photos, setPhotos] = useState(initialPhotos);
   const [uploaderNameMap, setUploaderNameMap] = useState(uploaderNames);
   const [pendingPhotos, setPendingPhotos] = useState<PhotoRecord[]>();
@@ -1166,7 +1176,7 @@ export function GalleryExperience({
         className="sticky top-0 z-40"
         style={{ background: "rgba(9,9,24,.90)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
       >
-        {/* Top row: logo + event name + guest profile */}
+        {/* Top row: logo + event name + lang toggle + guest profile */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
             <Image
@@ -1184,8 +1194,10 @@ export function GalleryExperience({
               {event.name}
             </h1>
           </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <LangToggle />
           <button
-            aria-label={participant ? "Open guest profile" : "Join as a guest"}
+            aria-label={participant ? t.openGuestProfile : t.joinAsGuestAria}
             className="flex shrink-0 touch-manipulation items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-sm font-semibold transition active:scale-[0.98]"
             style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             onClick={() => {
@@ -1207,6 +1219,7 @@ export function GalleryExperience({
               {activeParticipant}
             </span>
           </button>
+          </div>
         </div>
 
         <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-2 px-4 pb-3 sm:px-6">
@@ -1222,7 +1235,7 @@ export function GalleryExperience({
                     onChange={toggleSelectAll}
                     type="checkbox"
                   />
-                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                  {selectedIds.size > 0 ? `${selectedIds.size} ${t.selected}` : t.selectAll}
                 </label>
                 <button
                   className="text-sm font-semibold transition active:scale-95"
@@ -1230,14 +1243,18 @@ export function GalleryExperience({
                   style={{ color: "rgba(255,255,255,.40)" }}
                   type="button"
                 >
-                  Cancel
+                  {t.cancel}
                 </button>
               </div>
             ) : (
               <SegmentedControl
                 className="rounded-full"
                 onChange={setFilter}
-                options={FILTER_OPTIONS}
+                options={[
+                  { id: "all" as Filter, label: t.filterAll },
+                  { id: "mine" as Filter, label: t.filterMine },
+                  { id: "saved" as Filter, label: t.filterSaved },
+                ]}
                 value={filter}
               />
             )}
