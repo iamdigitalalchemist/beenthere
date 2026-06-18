@@ -726,8 +726,11 @@ export function ModerationGrid({
                 </button>
               </div>
             ) : (
-              <div className="relative min-w-0 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex gap-1 rounded-2xl p-1 w-max sm:w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
+              <div
+                className="relative min-w-0 overflow-x-auto rounded-2xl py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{ background: "rgba(255,255,255,.06)" }}
+              >
+                <div className="flex gap-1 p-1 w-max sm:w-fit">
                   {([
                     { id: "all", label: "All" },
                     { id: "visible", label: "Visible" },
