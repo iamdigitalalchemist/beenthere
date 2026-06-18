@@ -143,7 +143,7 @@ function getGalleryRowSpan(photo: PhotoRecord, containerWidth: number, size: Vie
   if (containerWidth <= 0) return 12;
 
   const cfg = GALLERY_CONFIG[size];
-  if (cfg.squareCrop) return 12; // fixed square height — 12 row-units ≈ square
+  if (cfg.squareCrop) return containerWidth >= 640 ? 12 : 8;
 
   const columns = getGalleryColumnCount(containerWidth, size);
   const gap = getGalleryGap(containerWidth, size);
