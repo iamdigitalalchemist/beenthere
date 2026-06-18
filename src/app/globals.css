@@ -37,13 +37,13 @@ body {
   overflow-x: clip;
 }
 
-/* Event card: row layout + show Open at 375px+ */
+/* Event card layout */
+.event-card { flex-direction: column; gap: 0.75rem; }
+.event-card-open { display: none; }
+
 @media (min-width: 375px) {
-  .event-card { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; }
-  .event-card-open { display: block !important; }
-}
-@media (max-width: 374px) {
-  .event-card-open { display: none !important; }
+  .event-card { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; }
+  .event-card-open { display: block; }
 }
 
 /* Remove pill fade at 470px and above */

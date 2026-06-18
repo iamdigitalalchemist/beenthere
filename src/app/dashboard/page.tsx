@@ -153,7 +153,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                 const s = statusStyles[event.status] ?? statusStyles.draft;
                 return (
                   <Link
-                    className="event-card group flex flex-col gap-4 rounded-3xl p-5 transition"
+                    className="event-card group flex rounded-3xl p-5 transition"
                     href={`/dashboard/events/${event.publicId}`}
                     key={event.id}
                     style={{ ...glass, transition: "box-shadow 200ms, border-color 200ms" }}
@@ -195,7 +195,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
               {showDemoEvent && (
                 <Link
-                  className="event-card group flex flex-col gap-4 rounded-3xl p-5 transition"
+                  className="event-card group flex rounded-3xl p-5 transition"
                   href="/dashboard/events/demo-event"
                   style={glass}
                 >
