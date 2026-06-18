@@ -1147,7 +1147,7 @@ export function GalleryExperience({
 
   return (
     <main
-      className="min-h-screen pb-28"
+      className="min-h-screen overflow-x-hidden pb-28"
       style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)", color: "rgba(255,255,255,.92)" }}
     >
       {/* Ambient glow */}
@@ -1335,7 +1335,7 @@ export function GalleryExperience({
         ) : null}
       </header>
 
-      <section className="relative z-0 mx-auto w-full max-w-6xl overflow-x-hidden px-4 pt-4 sm:px-6 sm:pt-5">
+      <section className="relative z-0 mx-auto w-full max-w-6xl px-3 pt-4 sm:px-6 sm:pt-5">
 
         {uploadMessage ? (
           <p
