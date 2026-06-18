@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   description:
     "Private photo galleries for events with QR guest access and no app download.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: { url: "/apple-touch-icon.png" },
+  },
 };
 
 export const viewport: Viewport = {
