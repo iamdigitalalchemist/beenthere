@@ -1251,9 +1251,13 @@ export function GalleryExperience({
                 ))}
               </fieldset>
             )}
-            {/* Right: view toggle + select — always grouped together */}
+            {/* Right: view toggle (desktop only) + select */}
             <div className="flex shrink-0 items-center gap-1.5">
-              {!selectMode && <ViewSizeToggle onChange={changeViewSize} value={viewSize} />}
+              {!selectMode && (
+                <div className="hidden sm:block">
+                  <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
+                </div>
+              )}
               <button
                 className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
                 onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
