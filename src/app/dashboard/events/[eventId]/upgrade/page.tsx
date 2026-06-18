@@ -44,7 +44,7 @@ export default async function UpgradePage({ params }: UpgradePageProps) {
             backgroundClip: "text",
           }}
         >
-          ← Back to {event.name}
+          &lt; Back to {event.name}
         </Link>
         <h1
           className="mt-3 text-4xl font-semibold"

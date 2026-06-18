@@ -31,7 +31,7 @@ export default async function NewEventPage() {
             href="/dashboard"
             style={{ color: "rgba(255,255,255,.45)" }}
           >
-            ← Back to events
+            &lt; Back to events
           </Link>
         </div>
       </header>

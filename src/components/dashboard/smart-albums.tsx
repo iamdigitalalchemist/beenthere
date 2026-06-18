@@ -355,7 +355,7 @@ export function SmartAlbums({
             onClick={() => setActiveSmartId(null)}
             type="button"
           >
-            ← Albums
+            &lt; Albums
           </button>
           <div className="min-w-0">
             <h2 className="text-lg font-bold">
@@ -695,7 +695,7 @@ function CustomAlbumDetail({
           onClick={onBack}
           type="button"
         >
-          ← Albums
+          &lt; Albums
         </button>
         <div className="min-w-0">
           <h2 className="text-lg font-bold">📁 {album.name}</h2>

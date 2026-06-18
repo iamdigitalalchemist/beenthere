@@ -85,7 +85,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
             href="/dashboard"
             style={{ color: "rgba(255,255,255,.45)" }}
           >
-            ← All events
+            &lt; All events
           </Link>
         </div>
       </header>
@@ -117,7 +117,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
               target="_blank"
             >
-              Guest link ↗
+              Guest link &gt;
             </Link>
             <Link
               className="rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
@@ -125,7 +125,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
               style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 4px 16px rgba(205,95,255,.25)" }}
               target="_blank"
             >
-              Open gallery →
+              Open gallery &gt;
             </Link>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
                   {[
                     { label: "Printable QR", href: `${base}/signage`, download: false },
                     { label: "Download ZIP", href: `/api/events/${dashboard.event.publicId}/export`, download: true },
-                    { label: "Slideshow ↗", href: `/e/${dashboard.event.publicId}/slideshow`, download: false, target: "_blank" },
+                    { label: "Slideshow &gt;", href: `/e/${dashboard.event.publicId}/slideshow`, download: false, target: "_blank" },
                   ].map(({ label, href, download: dl, target }) => (
                     dl ? (
                       <a
@@ -296,7 +296,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
                 href={`${base}/signage`}
                 style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
               >
-                Open signage →
+                Open signage &gt;
               </Link>
             </div>
 
