@@ -153,7 +153,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                 const s = statusStyles[event.status] ?? statusStyles.draft;
                 return (
                   <Link
-                    className="group flex flex-col gap-4 rounded-3xl p-5 transition sm:flex-row sm:items-center sm:justify-between"
+                    className="event-card group flex flex-col gap-4 rounded-3xl p-5 transition"
                     href={`/dashboard/events/${event.publicId}`}
                     key={event.id}
                     style={{ ...glass, transition: "box-shadow 200ms, border-color 200ms" }}
@@ -184,7 +184,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                       </div>
                     </div>
                     <span
-                      className="shrink-0 text-sm font-semibold transition"
+                      className="event-card-open shrink-0 text-sm font-semibold transition"
                       style={{ color: "rgba(255,255,255,.30)" }}
                     >
                       Open
@@ -195,7 +195,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
               {showDemoEvent && (
                 <Link
-                  className="group flex flex-col gap-4 rounded-3xl p-5 transition sm:flex-row sm:items-center sm:justify-between"
+                  className="event-card group flex flex-col gap-4 rounded-3xl p-5 transition"
                   href="/dashboard/events/demo-event"
                   style={glass}
                 >

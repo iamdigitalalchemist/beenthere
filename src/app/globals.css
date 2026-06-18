@@ -37,7 +37,16 @@ body {
   overflow-x: clip;
 }
 
-/* Remove pill fade at 375px and above */
+/* Event card: row layout + show Open at 375px+ */
+@media (min-width: 375px) {
+  .event-card { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 1rem !important; }
+  .event-card-open { display: block !important; }
+}
+@media (max-width: 374px) {
+  .event-card-open { display: none !important; }
+}
+
+/* Remove pill fade at 470px and above */
 @media (min-width: 470px) {
   .pills-no-fade-desktop {
     mask-image: none !important;
