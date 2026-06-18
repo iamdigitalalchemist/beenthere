@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 type Props = { user?: { email: string } | null };
 
 export function SiteNav({ user }: Props) {
-  const [pastHero, setPastHero] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
 
@@ -23,21 +23,16 @@ export function SiteNav({ user }: Props) {
   }
 
   useEffect(() => {
-    const sentinel = document.querySelector(".hero-sentinel");
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setPastHero(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const navStyle: React.CSSProperties = {
-    background: pastHero ? "rgba(9,9,24,.90)" : "rgba(9,9,24,.60)",
-    borderBottom: pastHero ? "1px solid rgba(255,255,255,.08)" : "1px solid transparent",
-    backdropFilter: "blur(20px)",
-    transition: "background 300ms, border-color 300ms",
+    background: scrolled ? "rgba(9,9,24,.90)" : "transparent",
+    borderBottom: scrolled ? "1px solid rgba(255,255,255,.08)" : "1px solid transparent",
+    backdropFilter: scrolled ? "blur(20px)" : "none",
+    transition: "background 400ms ease, border-color 400ms ease, backdrop-filter 400ms ease",
   };
 
   return (
