@@ -1231,7 +1231,7 @@ export function GalleryExperience({
                 <legend className="sr-only">Filter photos</legend>
                 {FILTER_OPTIONS.map((option) => (
                   <label
-                    className="tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
+                    className="flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
                     key={option.id}
                     style={filter === option.id
                       ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
