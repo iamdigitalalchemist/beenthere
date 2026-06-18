@@ -186,13 +186,13 @@ function AddToAlbumSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="w-full max-w-sm rounded-t-[2rem] bg-white px-5 pb-8 pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem]">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md sm:items-center sm:p-4">
+      <div className="w-full max-w-sm rounded-t-[2rem] bg-[#0F1023] px-5 pb-8 pt-5 shadow-2xl ring-1 ring-white/10 sm:rounded-[2rem]">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/15 sm:hidden" />
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-ink">Add to album</h2>
+          <h2 className="text-lg font-bold text-white/90">Add to album</h2>
           <button
-            className="rounded-full p-2 text-ink-muted transition hover:bg-black/5 hover:text-ink"
+            className="rounded-full p-2 text-white/40 transition hover:text-white/70"
             onClick={onClose}
             type="button"
           >
@@ -201,7 +201,7 @@ function AddToAlbumSheet({
         </div>
 
         {albums.length === 0 && !creating ? (
-          <p className="mb-4 text-sm text-ink-muted">No albums yet. Create one below.</p>
+          <p className="mb-4 text-sm text-white/45">No albums yet. Create one below.</p>
         ) : (
           <ul className="mb-3 max-h-56 space-y-1.5 overflow-y-auto">
             {albums.map((album) => {
@@ -217,9 +217,9 @@ function AddToAlbumSheet({
                     type="button"
                   >
                     <span className="text-lg">{isAdded ? "✅" : "📁"}</span>
-                    <span className="flex-1 truncate text-sm font-semibold text-ink">{album.name}</span>
+                    <span className="flex-1 truncate text-sm font-semibold text-white/85">{album.name}</span>
                     {saving === album.id && (
-                      <span className="text-xs text-ink-muted">Saving…</span>
+                      <span className="text-xs text-white/40">Saving…</span>
                     )}
                     {isAdded && saving !== album.id && (
                       <span className="text-xs font-semibold text-accent">Added</span>
@@ -261,7 +261,7 @@ function AddToAlbumSheet({
           </div>
         ) : (
           <button
-            className="mt-1 w-full rounded-full border border-dashed border-black/20 py-2.5 text-sm font-semibold text-ink-muted transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
+            className="mt-1 w-full rounded-full border border-dashed border-white/20 py-2.5 text-sm font-semibold text-white/40 transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
             onClick={() => setCreating(true)}
             type="button"
           >
@@ -327,18 +327,18 @@ function BulkAddToAlbumSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="w-full max-w-sm rounded-t-[2rem] bg-white px-5 pb-8 pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem]">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md sm:items-center sm:p-4">
+      <div className="w-full max-w-sm rounded-t-[2rem] bg-[#0F1023] px-5 pb-8 pt-5 shadow-2xl ring-1 ring-white/10 sm:rounded-[2rem]">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/15 sm:hidden" />
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-ink">Add to album</h2>
-            <p className="text-xs text-ink-muted">{photoIds.length} photos</p>
+            <h2 className="text-lg font-bold text-white/90">Add to album</h2>
+            <p className="text-xs text-white/40">{photoIds.length} photos</p>
           </div>
-          <button className="rounded-full p-2 text-ink-muted transition hover:bg-black/5 hover:text-ink" onClick={onClose} type="button">✕</button>
+          <button className="rounded-full p-2 text-white/40 transition hover:text-white/70" onClick={onClose} type="button">✕</button>
         </div>
         {albums.length === 0 && !creating ? (
-          <p className="mb-4 text-sm text-ink-muted">No albums yet. Create one below.</p>
+          <p className="mb-4 text-sm text-white/45">No albums yet. Create one below.</p>
         ) : (
           <ul className="mb-3 max-h-56 space-y-1.5 overflow-y-auto">
             {albums.map((album) => {
@@ -352,8 +352,8 @@ function BulkAddToAlbumSheet({
                     type="button"
                   >
                     <span className="text-lg">{isDone ? "✅" : "📁"}</span>
-                    <span className="flex-1 truncate text-sm font-semibold text-ink">{album.name}</span>
-                    {saving === album.id && <span className="text-xs text-ink-muted">Adding…</span>}
+                    <span className="flex-1 truncate text-sm font-semibold text-white/85">{album.name}</span>
+                    {saving === album.id && <span className="text-xs text-white/40">Adding…</span>}
                     {isDone && <span className="text-xs font-semibold text-accent">Added</span>}
                   </button>
                 </li>
@@ -379,7 +379,7 @@ function BulkAddToAlbumSheet({
             </div>
           </div>
         ) : (
-          <button className="mt-1 w-full rounded-full border border-dashed border-black/20 py-2.5 text-sm font-semibold text-ink-muted transition hover:border-accent/40 hover:text-accent active:scale-[0.98]" onClick={() => setCreating(true)} type="button">+ New album</button>
+          <button className="mt-1 w-full rounded-full border border-dashed border-white/20 py-2.5 text-sm font-semibold text-white/40 transition hover:border-accent/40 hover:text-accent active:scale-[0.98]" onClick={() => setCreating(true)} type="button">+ New album</button>
         )}
       </div>
     </div>

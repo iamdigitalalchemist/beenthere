@@ -68,19 +68,19 @@ function AddAllToAlbumSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="w-full max-w-sm rounded-t-[2rem] bg-white px-5 pb-8 pt-5 shadow-2xl ring-1 ring-black/5 sm:rounded-[2rem]">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/15 sm:hidden" />
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md sm:items-center sm:p-4">
+      <div className="w-full max-w-sm rounded-t-[2rem] bg-[#0F1023] px-5 pb-8 pt-5 shadow-2xl ring-1 ring-white/10 sm:rounded-[2rem]">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/15 sm:hidden" />
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-ink">Add to album</h2>
-            <p className="text-xs text-ink-muted">{photoIds.length} photos</p>
+            <h2 className="text-lg font-bold text-white/90">Add to album</h2>
+            <p className="text-xs text-white/40">{photoIds.length} photos</p>
           </div>
-          <button className="rounded-full p-2 text-ink-muted transition hover:bg-black/5 hover:text-ink" onClick={onClose} type="button">✕</button>
+          <button className="rounded-full p-2 text-white/40 transition hover:text-white/70" onClick={onClose} type="button">✕</button>
         </div>
 
         {albums.length === 0 && !creating ? (
-          <p className="mb-4 text-sm text-ink-muted">No albums yet. Create one below.</p>
+          <p className="mb-4 text-sm text-white/45">No albums yet. Create one below.</p>
         ) : (
           <ul className="mb-3 max-h-56 space-y-1.5 overflow-y-auto">
             {albums.map((album) => {
@@ -88,14 +88,14 @@ function AddAllToAlbumSheet({
               return (
                 <li key={album.id}>
                   <button
-                    className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${isDone ? "bg-accent/10 ring-1 ring-accent/30" : "bg-black/5 hover:bg-black/8"}`}
+                    className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition active:scale-[0.99] ${isDone ? "bg-accent/10 ring-1 ring-accent/30" : "bg-white/8 hover:bg-white/12"}`}
                     disabled={saving === album.id || isDone}
                     onClick={() => void addAll(album.id)}
                     type="button"
                   >
                     <span className="text-lg">{isDone ? "✅" : "📁"}</span>
-                    <span className="flex-1 truncate text-sm font-semibold text-ink">{album.name}</span>
-                    {saving === album.id && <span className="text-xs text-ink-muted">Adding…</span>}
+                    <span className="flex-1 truncate text-sm font-semibold text-white/85">{album.name}</span>
+                    {saving === album.id && <span className="text-xs text-white/40">Adding…</span>}
                     {isDone && <span className="text-xs font-semibold text-accent">Added</span>}
                   </button>
                 </li>
@@ -108,7 +108,7 @@ function AddAllToAlbumSheet({
           <div className="space-y-2">
             <input
               autoFocus
-              className="w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-2.5 text-sm text-white/90 outline-none transition"
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") void createAndAdd(); if (e.key === "Escape") setCreating(false); }}
               placeholder="Album name…"
@@ -116,7 +116,7 @@ function AddAllToAlbumSheet({
             />
             <div className="flex gap-2">
               <button
-                className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+                className="flex-1 rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-3 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
                 disabled={!newName.trim() || saving === "__new__"}
                 onClick={() => void createAndAdd()}
                 type="button"
@@ -124,7 +124,7 @@ function AddAllToAlbumSheet({
                 {saving === "__new__" ? "Creating…" : "Create & add all"}
               </button>
               <button
-                className="rounded-full border border-black/10 px-3 py-2 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95"
+                className="rounded-full border border-white/10 bg-white/6 px-3 py-2 text-sm font-semibold text-white/70 transition active:scale-95"
                 onClick={() => setCreating(false)}
                 type="button"
               >
@@ -134,7 +134,7 @@ function AddAllToAlbumSheet({
           </div>
         ) : (
           <button
-            className="mt-1 w-full rounded-full border border-dashed border-black/20 py-2.5 text-sm font-semibold text-ink-muted transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
+            className="mt-1 w-full rounded-full border border-dashed border-white/20 py-2.5 text-sm font-semibold text-white/40 transition hover:border-accent/40 hover:text-accent active:scale-[0.98]"
             onClick={() => setCreating(true)}
             type="button"
           >
@@ -200,22 +200,22 @@ function CreateAlbumModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-black/5">
-        <h2 className="text-lg font-bold text-ink">New album</h2>
-        <p className="mt-1 text-sm text-ink-muted">Give your album a name.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <div className="w-full max-w-sm rounded-[2rem] bg-[#0F1023] p-6 shadow-2xl ring-1 ring-white/10">
+        <h2 className="text-lg font-bold text-white/90">New album</h2>
+        <p className="mt-1 text-sm text-white/45">Give your album a name.</p>
         <input
           autoFocus
-          className="mt-4 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="mt-4 w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-base text-white/90 outline-none transition"
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
           placeholder="e.g. Ceremony, Best shots…"
           value={name}
         />
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
         <div className="mt-4 flex gap-2">
           <button
-            className="flex-1 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+            className="flex-1 rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
             disabled={!name.trim() || saving}
             onClick={() => void submit()}
             type="button"
@@ -223,7 +223,7 @@ function CreateAlbumModal({
             {saving ? "Creating…" : "Create album"}
           </button>
           <button
-            className="flex-1 rounded-full border border-black/10 bg-black/5 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+            className="flex-1 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-sm font-semibold text-white/70 transition active:scale-95"
             onClick={onClose}
             type="button"
           >
@@ -267,19 +267,19 @@ function RenameAlbumModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-black/5">
-        <h2 className="text-lg font-bold text-ink">Rename album</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <div className="w-full max-w-sm rounded-[2rem] bg-[#0F1023] p-6 shadow-2xl ring-1 ring-white/10">
+        <h2 className="text-lg font-bold text-white/90">Rename album</h2>
         <input
           autoFocus
-          className="mt-4 w-full rounded-2xl border border-black/10 bg-black/5 px-4 py-3 text-base text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+          className="mt-4 w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-base text-white/90 outline-none transition"
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
           value={name}
         />
         <div className="mt-4 flex gap-2">
           <button
-            className="flex-1 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+            className="flex-1 rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
             disabled={!name.trim() || saving}
             onClick={() => void submit()}
             type="button"
@@ -287,7 +287,7 @@ function RenameAlbumModal({
             {saving ? "Saving…" : "Save"}
           </button>
           <button
-            className="flex-1 rounded-full border border-black/10 bg-black/5 px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+            className="flex-1 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-sm font-semibold text-white/70 transition active:scale-95"
             onClick={onClose}
             type="button"
           >
@@ -351,7 +351,7 @@ export function SmartAlbums({
       <div>
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <button
-            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-accent/30 hover:text-accent active:scale-95"
+            className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-accent/30 hover:text-accent active:scale-95"
             onClick={() => setActiveSmartId(null)}
             type="button"
           >
@@ -361,10 +361,10 @@ export function SmartAlbums({
             <h2 className="text-lg font-bold">
               {smartTypeEmoji[activeSmartAlbum.type]} {activeSmartAlbum.label}
             </h2>
-            <p className="text-sm text-ink-muted">{activeSmartAlbum.photoCount} photos</p>
+            <p className="text-sm text-white/45">{activeSmartAlbum.photoCount} photos</p>
           </div>
           <a
-            className="ml-auto shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+            className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
             download
             href={buildSmartExportUrl(activeSmartAlbum)}
           >
@@ -430,11 +430,11 @@ export function SmartAlbums({
       {/* Custom albums section */}
       <div>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-white/45">
             📁 My albums
           </h3>
           <button
-            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+            className="rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
             onClick={() => setShowCreate(true)}
             type="button"
           >
@@ -444,7 +444,7 @@ export function SmartAlbums({
 
         {customAlbums.length === 0 ? (
           <button
-            className="flex w-full items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-black/10 bg-white p-8 text-ink-muted transition hover:border-accent/30 hover:text-accent active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-white/12 bg-white/2 p-8 text-white/40 transition hover:border-accent/30 hover:text-accent active:scale-[0.99]"
             onClick={() => setShowCreate(true)}
             type="button"
           >
@@ -455,7 +455,7 @@ export function SmartAlbums({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {customAlbums.map((album) => (
               <div
-                className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5"
+                className="group overflow-hidden rounded-3xl shadow-sm ring-1 ring-white/8 bg-white/4"
                 key={album.id}
               >
                 <button
@@ -482,14 +482,14 @@ export function SmartAlbums({
                     onClick={() => setActiveCustomId(album.id)}
                     type="button"
                   >
-                    <p className="truncate font-semibold text-ink">{album.name}</p>
-                    <p className="text-xs text-ink-muted">
+                    <p className="truncate font-semibold text-white/85">{album.name}</p>
+                    <p className="text-xs text-white/40">
                       {album.photoCount} photo{album.photoCount !== 1 ? "s" : ""}
                     </p>
                   </button>
                   <div className="flex shrink-0 items-center gap-1">
                     <a
-                      className="rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
+                      className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs font-semibold text-white/65 transition hover:border-accent/30 hover:text-accent active:scale-95"
                       download
                       href={buildCustomExportUrl(album.id)}
                       onClick={(e) => e.stopPropagation()}
@@ -497,7 +497,7 @@ export function SmartAlbums({
                       ZIP ↓
                     </a>
                     <button
-                      className="rounded-full border border-black/10 bg-[#f8f9fb] px-2.5 py-1.5 text-xs font-semibold text-ink transition hover:bg-black/10 active:scale-95"
+                      className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1.5 text-xs font-semibold text-white/65 transition active:scale-95"
                       onClick={() => setRenamingAlbum(album)}
                       title="Rename"
                       type="button"
@@ -505,7 +505,7 @@ export function SmartAlbums({
                       ✏️
                     </button>
                     <button
-                      className="rounded-full border border-red-100 bg-[#f8f9fb] px-2.5 py-1.5 text-xs font-semibold text-red-500 transition hover:bg-red-50 active:scale-95 disabled:opacity-40"
+                      className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-400 transition active:scale-95 disabled:opacity-40"
                       disabled={deletingId === album.id}
                       onClick={() => void deleteAlbum(album.id)}
                       title="Delete album"
@@ -526,13 +526,13 @@ export function SmartAlbums({
         .filter((s) => smartByType[s.type].length > 0)
         .map((section) => (
           <div key={section.type}>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/45">
               {smartTypeEmoji[section.type]} {section.title}
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {smartByType[section.type].map((album) => (
                 <div
-                  className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition hover:ring-accent/30"
+                  className="group overflow-hidden rounded-3xl shadow-sm ring-1 ring-white/8 transition hover:ring-accent/30 bg-white/4"
                   key={album.id}
                 >
                   <button
@@ -561,14 +561,14 @@ export function SmartAlbums({
                       onClick={() => setActiveSmartId(album.id)}
                       type="button"
                     >
-                      <p className="truncate font-semibold text-ink">{album.label}</p>
-                      <p className="text-xs text-ink-muted">
+                      <p className="truncate font-semibold text-white/85">{album.label}</p>
+                      <p className="text-xs text-white/40">
                         {album.photoCount} photo{album.photoCount !== 1 ? "s" : ""}
                       </p>
                     </button>
                     <div className="flex shrink-0 items-center gap-1">
                       <button
-                        className="rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
+                        className="rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs font-semibold text-white/65 transition hover:border-accent/30 hover:text-accent active:scale-95"
                         onClick={() => {
                           const photoIds = allPhotos
                             .filter((p) => {
@@ -585,7 +585,7 @@ export function SmartAlbums({
                         + Album
                       </button>
                       <a
-                        className="shrink-0 rounded-full border border-black/10 bg-[#f8f9fb] px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-accent/30 hover:text-accent active:scale-95"
+                        className="shrink-0 rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs font-semibold text-white/65 transition hover:border-accent/30 hover:text-accent active:scale-95"
                         download
                         href={buildSmartExportUrl(album)}
                       >
@@ -600,9 +600,9 @@ export function SmartAlbums({
         ))}
 
       {!hasAny && (
-        <div className="mt-4 rounded-3xl border-2 border-dashed border-black/10 bg-white p-12 text-center">
-          <p className="font-semibold text-ink">No albums yet</p>
-          <p className="mt-1 text-sm text-ink-muted">
+        <div className="mt-4 rounded-3xl border-2 border-dashed border-white/12 bg-white/2 p-12 text-center">
+          <p className="font-semibold text-white/85">No albums yet</p>
+          <p className="mt-1 text-sm text-white/45">
             Smart albums appear once guests upload and tag photos. Create a manual album above.
           </p>
         </div>
@@ -691,7 +691,7 @@ function CustomAlbumDetail({
     <div>
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <button
-          className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-accent/30 hover:text-accent active:scale-95"
+          className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-accent/30 hover:text-accent active:scale-95"
           onClick={onBack}
           type="button"
         >
@@ -699,10 +699,10 @@ function CustomAlbumDetail({
         </button>
         <div className="min-w-0">
           <h2 className="text-lg font-bold">📁 {album.name}</h2>
-          <p className="text-sm text-ink-muted">{album.photoCount} photos</p>
+          <p className="text-sm text-white/45">{album.photoCount} photos</p>
         </div>
         <a
-          className="ml-auto shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+          className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
           download
           href={exportUrl}
         >
@@ -713,7 +713,7 @@ function CustomAlbumDetail({
       {!loaded ? (
         <div className="mt-4 text-center">
           <button
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+            className="rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
             disabled={loading}
             onClick={() => void loadPhotos()}
             type="button"
@@ -777,7 +777,7 @@ function TaggedAlbumGrid({
     return (
       <div className="mt-4 text-center">
         <button
-          className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+          className="rounded-full bg-gradient-to-r from-[#FF6DAE] to-[#B35DFF] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
           disabled={loading}
           onClick={() => void loadTaggedPhotos()}
           type="button"
