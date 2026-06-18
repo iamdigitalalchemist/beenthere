@@ -37,15 +37,11 @@ body {
   overflow-x: clip;
 }
 
-/* Fade mask only on mobile — hidden on sm+ */
-.pills-fade-mask {
-  mask-image: linear-gradient(to right, black 70%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
-}
+/* Remove inline mask on sm+ so desktop pills always show fully */
 @media (min-width: 640px) {
-  .pills-fade-mask {
-    mask-image: none;
-    -webkit-mask-image: none;
+  .pills-no-fade-desktop {
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
   }
 }
 
