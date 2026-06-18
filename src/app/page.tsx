@@ -108,15 +108,7 @@ export default async function Home() {
           }}
         />
 
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center justify-center px-6 pb-20 pt-24 text-center sm:pb-24 sm:pt-32 lg:py-52 lg:px-8">
-          {/* Mobile logo */}
-          <Image
-            alt="beenThere"
-            className="mb-8 lg:hidden"
-            height={44}
-            src="/icon-white.webp"
-            width={44}
-          />
+        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center justify-center px-6 pb-20 pt-28 text-center sm:pb-24 sm:pt-36 lg:py-52 lg:px-8">
 
           {/* Eyebrow pill */}
           <div
@@ -578,14 +570,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ── Footer (desktop) ── */}
+      {/* ── Footer ── */}
       <footer
-        className="hidden px-8 py-8 lg:block"
+        className="px-6 py-8 lg:px-8"
         style={{ borderTop: "1px solid rgba(255,255,255,.06)" }}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Image alt="beenThere" className="brightness-0 invert opacity-70" height={28} src="/logo.webp" width={110} />
-          <p className="text-xs" style={{ color: "rgba(255,255,255,.30)" }}>© 2026 beenThere. All rights reserved.</p>
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <Image alt="beenThere" className="brightness-0 invert opacity-70" height={24} src="/logo.webp" width={96} />
+          <p className="text-xs order-last sm:order-none" style={{ color: "rgba(255,255,255,.30)" }}>© 2026 beenThere. All rights reserved.</p>
           <div className="flex gap-5 text-xs" style={{ color: "rgba(255,255,255,.30)" }}>
             <Link className="transition hover:text-white/70" href="#">Privacy</Link>
             <Link className="transition hover:text-white/70" href="#">Terms</Link>
@@ -594,66 +586,6 @@ export default async function Home() {
         </div>
       </footer>
 
-      {/* ── Mobile bottom nav ── */}
-      <nav
-        className="fixed bottom-4 left-4 right-4 z-20 lg:hidden"
-        style={{
-          background: "rgba(15,16,35,.80)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,.08)",
-          borderRadius: "28px",
-          boxShadow: "0 8px 32px rgba(0,0,0,.40)",
-        }}
-      >
-        <div className="flex items-center justify-around px-2 py-3">
-          {[
-            { icon: (
-              <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="20"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            ), label: "Home", active: true, href: "/" },
-            { icon: (
-              <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="20"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-            ), label: "Explore", href: "/join/demo-join-token" },
-            { cta: true, href: user ? "/dashboard/new" : "/login" },
-            { icon: (
-              <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="20"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            ), label: "Saved", href: "/login" },
-            { icon: (
-              <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            ), label: "Profile", href: "/dashboard" },
-          ].map((tab, i) =>
-            tab.cta ? (
-              <Link
-                className="flex size-11 items-center justify-center rounded-full text-white transition hover:brightness-110 active:scale-95"
-                href={tab.href!}
-                key="cta"
-                style={{
-                  background: "linear-gradient(135deg, #FF6DAE, #B35DFF)",
-                  boxShadow: "0 0 20px rgba(214,108,255,.30)",
-                }}
-              >
-                <svg fill="none" height="20" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                  <line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/>
-                </svg>
-              </Link>
-            ) : (
-              <Link className="flex flex-col items-center gap-1" href={tab.href!} key={i}>
-                <span style={{ color: tab.active ? "rgba(255,255,255,.92)" : "rgba(255,255,255,.35)" }}>
-                  {tab.icon}
-                </span>
-                <span
-                  className="text-[10px] font-medium"
-                  style={{ color: tab.active ? "rgba(255,255,255,.70)" : "rgba(255,255,255,.30)" }}
-                >
-                  {tab.label}
-                </span>
-              </Link>
-            )
-          )}
-        </div>
-      </nav>
-
-      {/* Spacer for mobile bottom nav */}
-      <div className="h-24 lg:hidden" />
     </div>
   );
 }
