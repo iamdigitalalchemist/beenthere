@@ -7,6 +7,7 @@ import { EventSocialsSettings } from "@/components/dashboard/event-socials-setti
 import { UploadPolicySettings } from "@/components/dashboard/upload-policy-settings";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
+import { PhotosTabHeader } from "@/components/dashboard/photos-tab-header";
 import { StorageCard } from "@/components/dashboard/storage-card";
 import { getJoinPath } from "@/lib/join";
 import { canManageEvent, requireUser } from "@/server/auth";
@@ -39,9 +40,14 @@ export default async function DashboardEventPage({ params, searchParams }: Props
   const s = statusStyles[dashboard.event.status] ?? statusStyles.draft;
 
   const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "photos",   label: `Photos${dashboard.stats.totalPhotos > 0 ? ` · ${dashboard.stats.totalPhotos}` : ""}` },
-    { id: "settings", label: "Settings" },
+    { id: "overview", label: "Overview", icon: null },
+    { id: "photos",   label: `Photos${dashboard.stats.totalPhotos > 0 ? ` · ${dashboard.stats.totalPhotos}` : ""}`, icon: null },
+    { id: "settings", label: null, icon: (
+      <svg fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.75" viewBox="0 0 24 24" width="16">
+        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    ) },
   ];
 
   const base = `/dashboard/events/${dashboard.event.publicId}`;
@@ -135,15 +141,18 @@ export default async function DashboardEventPage({ params, searchParams }: Props
           <div className="flex gap-1 rounded-2xl p-1 w-max sm:w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
             {tabs.map((t) => (
               <Link
-                className="whitespace-nowrap rounded-xl px-5 py-2 text-sm font-semibold transition active:scale-95"
+                className="flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition active:scale-95"
                 href={`${base}?tab=${t.id}`}
                 key={t.id}
-                style={tab === t.id
-                  ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                  : { color: "rgba(255,255,255,.40)" }
-                }
+                style={{
+                  padding: t.icon ? "8px 12px" : "8px 20px",
+                  ...(tab === t.id
+                    ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
+                    : { color: "rgba(255,255,255,.40)" })
+                }}
+                title={t.id === "settings" ? "Settings" : undefined}
               >
-                {t.label}
+                {t.icon ?? t.label}
               </Link>
             ))}
           </div>
@@ -252,49 +261,18 @@ export default async function DashboardEventPage({ params, searchParams }: Props
 
         {/* ══ PHOTOS TAB ══ */}
         {tab === "photos" && (
-          <div>
-            {/* All / Albums sub-toggle */}
-            <div className="mb-6 overflow-x-auto">
-              <div className="flex gap-1 rounded-2xl p-1 w-fit" style={{ background: "rgba(255,255,255,.06)" }}>
-                {[
-                  { id: "all", label: "All photos" },
-                  { id: "albums", label: `Albums${(dashboard.albums.length + dashboard.customAlbums.length) > 0 ? ` · ${dashboard.albums.length + dashboard.customAlbums.length}` : ""}` },
-                ].map((v) => (
-                  <Link
-                    className="rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition active:scale-95"
-                    href={`${base}?tab=photos&view=${v.id}`}
-                    key={v.id}
-                    style={view === v.id
-                      ? { background: "rgba(255,255,255,.10)", color: "rgba(255,255,255,.92)" }
-                      : { color: "rgba(255,255,255,.40)" }
-                    }
-                  >
-                    {v.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {view === "albums" ? (
-              <SmartAlbums
-                albums={dashboard.albums}
-                customAlbums={dashboard.customAlbums}
-                allPhotos={dashboard.photos}
-                uploaderNames={dashboard.uploaderNames}
-                reports={dashboard.reports}
-                eventPublicId={dashboard.event.publicId}
-              />
-            ) : (
-              <ModerationGrid
-                initialPhotos={dashboard.photos}
-                reports={dashboard.reports}
-                uploaderNames={dashboard.uploaderNames}
-                customAlbums={dashboard.customAlbums}
-                eventPublicId={dashboard.event.publicId}
-                eventId={dashboard.event.id}
-              />
-            )}
-          </div>
+          <PhotosTabHeader
+            albums={dashboard.albums}
+            allPhotos={dashboard.photos}
+            base={base}
+            customAlbums={dashboard.customAlbums}
+            eventId={dashboard.event.id}
+            eventPublicId={dashboard.event.publicId}
+            reports={dashboard.reports}
+            totalAlbums={dashboard.albums.length + dashboard.customAlbums.length}
+            uploaderNames={dashboard.uploaderNames}
+            view={view}
+          />
         )}
 
         {/* ══ SETTINGS TAB ══ */}

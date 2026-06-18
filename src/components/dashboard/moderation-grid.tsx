@@ -19,6 +19,8 @@ type ModerationGridProps = {
   customAlbums?: CustomAlbum[];
   eventPublicId?: string;
   eventId?: string;
+  externalSelectMode?: boolean;
+  onExternalSelectModeChange?: (v: boolean) => void;
 };
 
 type VisibilityFilter = "all" | "visible" | "hidden" | "gallery" | "reported";
@@ -398,6 +400,8 @@ export function ModerationGrid({
   customAlbums,
   eventPublicId,
   eventId,
+  externalSelectMode,
+  onExternalSelectModeChange,
 }: ModerationGridProps) {
   const [photos, setPhotos] = useState(initialPhotos);
   const [uploaderNames, setUploaderNames] = useState(initialUploaderNames);
@@ -411,7 +415,9 @@ export function ModerationGrid({
   const [addToAlbumPhotoId, setAddToAlbumPhotoId] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [viewSize, setViewSize] = useState<ViewSize>("medium");
-  const [selectMode, setSelectMode] = useState(false);
+  const [internalSelectMode, setInternalSelectMode] = useState(false);
+  const selectMode = externalSelectMode ?? internalSelectMode;
+  const setSelectMode = onExternalSelectModeChange ?? setInternalSelectMode;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
@@ -779,17 +785,20 @@ export function ModerationGrid({
                   </button>
                 </>
               )}
-              <button
-                className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
-                onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
-                style={selectMode
-                  ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
-                  : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
-                }
-                type="button"
-              >
-                Select
-              </button>
+              {/* Select button only shown when no external controller */}
+              {!onExternalSelectModeChange && (
+                <button
+                  className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
+                  onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
+                  style={selectMode
+                    ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
+                    : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
+                  }
+                  type="button"
+                >
+                  Select
+                </button>
+              )}
             </div>
           </div>
         </div>
