@@ -38,7 +38,7 @@ body {
 }
 
 /* Remove pill fade at 375px and above */
-@media (min-width: 375px) {
+@media (min-width: 470px) {
   .pills-no-fade-desktop {
     mask-image: none !important;
     -webkit-mask-image: none !important;
