@@ -121,13 +121,34 @@ export function EventSlideshow({
             />
           </div>
         ) : (
-          <div className="absolute inset-0 grid place-items-center bg-slate-950 px-6 text-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
+          <div
+            className="absolute inset-0 grid place-items-center px-6 text-center"
+            style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 100%)" }}
+          >
+            {/* Ambient glow */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: "radial-gradient(circle at 50% 40%, rgba(117,84,255,.18) 0%, transparent 60%)" }}
+            />
+            <div className="relative z-10">
+              <p
+                className="text-sm font-semibold uppercase tracking-[0.3em]"
+                style={{
+                  background: "linear-gradient(135deg, #FF6AA9, #B65DFF)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
                 Waiting for photos
               </p>
-              <h1 className="mt-4 text-5xl font-semibold">{event.name}</h1>
-              <p className="mt-4 text-lg text-slate-300">
+              <h1
+                className="mt-4 text-5xl font-semibold"
+                style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.02em" }}
+              >
+                {event.name}
+              </h1>
+              <p className="mt-4 text-lg" style={{ color: "rgba(255,255,255,.45)" }}>
                 Scan the event QR code to add the first photos.
               </p>
             </div>
@@ -137,18 +158,39 @@ export function EventSlideshow({
         <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent p-6">
           <div className="flex items-start justify-between gap-6">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-200">
+              <p
+                className="text-sm font-semibold uppercase tracking-[0.28em]"
+                style={{
+                  background: "linear-gradient(135deg, #FF6AA9, #B65DFF)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
                 Live event wall
               </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+              <h1
+                className="mt-2 text-3xl font-semibold tracking-tight"
+                style={{ color: "rgba(255,255,255,.92)" }}
+              >
                 {event.name}
               </h1>
             </div>
-            <div className="rounded-2xl bg-white/90 px-4 py-3 text-right text-slate-950">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <div
+              className="rounded-2xl px-4 py-3 text-right"
+              style={{
+                background: "rgba(255,255,255,.08)",
+                border: "1px solid rgba(255,255,255,.12)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <p
+                className="text-xs font-semibold uppercase tracking-[0.2em]"
+                style={{ color: "rgba(255,255,255,.40)" }}
+              >
                 Scan to join
               </p>
-              <p className="mt-1 font-mono text-sm">{joinPath}</p>
+              <p className="mt-1 font-mono text-sm" style={{ color: "rgba(255,255,255,.80)" }}>{joinPath}</p>
             </div>
           </div>
         </div>
@@ -156,33 +198,32 @@ export function EventSlideshow({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm text-slate-300">
-                {visiblePhotos.length} visible photo
-                {visiblePhotos.length === 1 ? "" : "s"}
+              <p className="text-sm" style={{ color: "rgba(255,255,255,.55)" }}>
+                {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
                 {lastUpdatedAt ? ` · Updated ${lastUpdatedAt}` : ""}
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                Uploader names are hidden by default for slideshow mode.
               </p>
             </div>
             <div className="pointer-events-auto flex gap-2">
               <button
-                className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
+                className="rounded-full px-4 py-2 text-sm font-semibold backdrop-blur transition hover:brightness-110"
                 onClick={showPreviousPhoto}
+                style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.15)", color: "rgba(255,255,255,.80)" }}
                 type="button"
               >
                 Previous
               </button>
               <button
-                className="rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-100"
+                className="rounded-full px-4 py-2 text-sm font-bold text-white transition hover:brightness-110"
                 onClick={() => setIsPaused((currentValue) => !currentValue)}
+                style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 4px 16px rgba(205,95,255,.25)" }}
                 type="button"
               >
                 {isPaused ? "Resume" : "Pause"}
               </button>
               <button
-                className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur transition hover:bg-white/25"
+                className="rounded-full px-4 py-2 text-sm font-semibold backdrop-blur transition hover:brightness-110"
                 onClick={showNextPhoto}
+                style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.15)", color: "rgba(255,255,255,.80)" }}
                 type="button"
               >
                 Next

@@ -43,23 +43,31 @@ export function ActivateEventBanner({ eventPublicId }: ActivateEventBannerProps)
   }
 
   return (
-    <section className="rounded-3xl bg-amber-50/80 p-5 ring-1 ring-amber-200/60 backdrop-blur-sm">
+    <section
+      className="rounded-3xl p-5"
+      style={{
+        background: "rgba(255,190,85,.08)",
+        border: "1px solid rgba(255,190,85,.18)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-semibold text-amber-900">
+          <p className="font-semibold" style={{ color: "#FFBE55" }}>
             This event is a draft — guests can&apos;t join yet.
           </p>
-          <p className="mt-1 text-sm text-amber-700">
+          <p className="mt-1 text-sm" style={{ color: "rgba(255,190,85,.70)" }}>
             Take it live to unlock the join QR, uploads, and the guest gallery.
           </p>
           {error ? (
-            <p className="mt-2 text-sm font-medium text-red-600">{error}</p>
+            <p className="mt-2 text-sm font-medium" style={{ color: "#FF8FA3" }}>{error}</p>
           ) : null}
         </div>
         <button
-          className="shrink-0 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95 disabled:opacity-50"
+          className="shrink-0 rounded-full px-6 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
           disabled={isActivating}
           onClick={() => void activate()}
+          style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 4px 16px rgba(205,95,255,.25)" }}
           type="button"
         >
           {isActivating ? "Activating…" : "Go live"}

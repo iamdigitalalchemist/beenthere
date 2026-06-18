@@ -1145,17 +1145,32 @@ export function GalleryExperience({
   }, [pendingPhotos, photos]);
 
   return (
-    <main className="min-h-screen bg-[#f8f9fb] pb-28 text-ink">
-      <header className="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-xl">
+    <main
+      className="min-h-screen pb-28"
+      style={{ background: "linear-gradient(180deg, #090918 0%, #10122C 40%, #0C0D20 100%)", color: "rgba(255,255,255,.92)" }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{ background: "radial-gradient(circle at 50% 0%, rgba(117,84,255,.12) 0%, transparent 60%)" }}
+      />
+      <header
+        className="sticky top-0 z-40"
+        style={{ background: "rgba(9,9,24,.85)", borderBottom: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-bold tracking-tight sm:text-lg">
+            <h1
+              className="truncate text-base font-bold tracking-tight sm:text-lg"
+              style={{ color: "rgba(255,255,255,.92)", letterSpacing: "-0.01em" }}
+            >
               {event.name}
             </h1>
           </div>
           <button
             aria-label={participant ? "Open guest profile" : "Join as a guest"}
-            className="flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-full border border-black/8 bg-white/80 backdrop-blur-sm py-1.5 pl-1.5 pr-3 text-sm font-semibold shadow-sm transition hover:border-accent/30 active:scale-[0.98]"
+            className="flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-sm font-semibold transition active:scale-[0.98]"
+            style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             onClick={() => {
               setIdentityError(null);
               setIdentityMode(participant ? "signup" : "code");
@@ -1183,7 +1198,7 @@ export function GalleryExperience({
             <div className="flex items-center gap-2 min-w-0">
               {selectMode ? (
                 <div className="flex items-center gap-2">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>
                     <input
                       checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
                       className="size-4 accent-accent"
@@ -1193,8 +1208,9 @@ export function GalleryExperience({
                     {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
                   </label>
                   <button
-                    className="text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+                    className="text-sm font-semibold transition active:scale-95"
                     onClick={exitSelectMode}
+                    style={{ color: "rgba(255,255,255,.40)" }}
                     type="button"
                   >
                     Cancel
@@ -1202,16 +1218,16 @@ export function GalleryExperience({
                 </div>
               ) : (
                 <>
-                  <fieldset className="flex rounded-full bg-black/5 p-1">
+                  <fieldset className="flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
                     <legend className="sr-only">Filter photos</legend>
                     {FILTER_OPTIONS.map((option) => (
                       <label
-                        className={`tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98] ${
-                          filter === option.id
-                            ? "bg-white text-ink shadow-sm"
-                            : "text-ink-muted"
-                        }`}
+                        className="tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
                         key={option.id}
+                        style={filter === option.id
+                          ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
+                          : { color: "rgba(255,255,255,.40)" }
+                        }
                       >
                         <input
                           checked={filter === option.id}
@@ -1230,12 +1246,12 @@ export function GalleryExperience({
               )}
             </div>
             <button
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold transition active:scale-95 ${
-                selectMode
-                  ? "border-accent bg-accent/10 text-accent"
-                  : "border-black/10 bg-white/80 text-ink backdrop-blur-sm hover:bg-white"
-              }`}
+              className="shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
               onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+              style={selectMode
+                ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
+                : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
+              }
               type="button"
             >
               Select
@@ -1243,23 +1259,31 @@ export function GalleryExperience({
           </div>
           {/* Search: full width on its own row */}
           <input
-            className="min-h-11 w-full rounded-full border border-black/8 bg-white/80 backdrop-blur-sm px-4 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            className="min-h-11 w-full rounded-full px-4 py-2.5 text-sm outline-none transition"
             onChange={(inputEvent) => setSearch(inputEvent.target.value)}
             placeholder="Search by name"
+            style={{
+              background: "rgba(255,255,255,.06)",
+              border: "1px solid rgba(255,255,255,.10)",
+              color: "rgba(255,255,255,.80)",
+            }}
             value={search}
           />
         </div>
 
         {pendingPhotos ? (
-          <div className="new-photos-banner border-b border-accent/20 bg-accent-soft px-5 py-3 sm:px-6">
+          <div
+            className="new-photos-banner px-5 py-3 sm:px-6"
+            style={{ borderBottom: "1px solid rgba(255,109,174,.15)", background: "rgba(255,109,174,.08)" }}
+          >
             <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
-              <p className="text-sm font-medium text-ink">
-                {pendingCount || "New"} photo
-                {(pendingCount || 0) === 1 ? "" : "s"} just arrived
+              <p className="text-sm font-medium" style={{ color: "rgba(255,255,255,.80)" }}>
+                {pendingCount || "New"} photo{(pendingCount || 0) === 1 ? "" : "s"} just arrived
               </p>
               <button
-                className="tap-target rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-hover active:scale-[0.98]"
+                className="tap-target rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
                 onClick={showPendingPhotos}
+                style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
                 type="button"
               >
                 Show new
@@ -1272,15 +1296,18 @@ export function GalleryExperience({
       <section className="relative z-0 mx-auto w-full max-w-6xl px-5 pt-4 sm:px-6 sm:pt-5">
 
         {uploadMessage ? (
-          <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-ink-muted">
+          <p
+            className="mt-4 rounded-2xl px-4 py-3 text-sm"
+            style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.55)" }}
+          >
             {uploadMessage}
           </p>
         ) : null}
 
         {filteredPhotos.length === 0 ? (
           <div className="mt-16 text-center">
-            <p className="text-lg font-semibold text-ink">No photos yet</p>
-            <p className="mt-2 text-sm text-ink-muted">
+            <p className="text-lg font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>No photos yet</p>
+            <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,.40)" }}>
               Be the first to add a moment from this event.
             </p>
           </div>
@@ -1377,35 +1404,42 @@ export function GalleryExperience({
         )}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-black/5 bg-white/80 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-xl sm:px-6">
+      <div
+        className="fixed inset-x-0 bottom-0 z-30 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6"
+        style={{ background: "rgba(9,9,24,.85)", borderTop: "1px solid rgba(255,255,255,.06)", backdropFilter: "blur(20px)" }}
+      >
         {selectMode && selectedIds.size > 0 ? (
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2">
-            <span className="text-sm font-semibold text-ink">{selectedIds.size} selected</span>
+            <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>{selectedIds.size} selected</span>
             <a
-              className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink/80 active:scale-95"
+              className="rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
               download
               href={`/api/events/${event.publicId}/download?${Array.from(selectedIds).map((id) => `photoId=${id}`).join("&")}`}
               onClick={exitSelectMode}
+              style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
             >
               Download ZIP
             </a>
             <button
-              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover active:scale-95"
+              className="rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95"
               onClick={() => bulkSave(true)}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
               type="button"
             >
               Save all
             </button>
             <button
-              className="rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-black/5 active:scale-95"
+              className="rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-95"
               onClick={() => bulkSave(false)}
+              style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.70)" }}
               type="button"
             >
               Unsave all
             </button>
             <button
-              className="rounded-full border border-black/10 px-4 py-2.5 text-sm font-semibold text-ink-muted transition hover:text-ink active:scale-95"
+              className="rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-95"
               onClick={exitSelectMode}
+              style={{ color: "rgba(255,255,255,.35)" }}
               type="button"
             >
               Cancel
@@ -1413,11 +1447,13 @@ export function GalleryExperience({
           </div>
         ) : (
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-          <p className="hidden text-sm text-ink-muted sm:block">
-            {filteredPhotos.length} photo
-            {filteredPhotos.length === 1 ? "" : "s"}
+          <p className="hidden text-sm sm:block" style={{ color: "rgba(255,255,255,.35)" }}>
+            {filteredPhotos.length} photo{filteredPhotos.length === 1 ? "" : "s"}
           </p>
-          <label className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full bg-accent px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-accent-hover active:scale-[0.98]">
+          <label
+            className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
+            style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
+          >
             Add photos
             <input
               accept="image/jpeg,image/png,image/heic,image/heif"
