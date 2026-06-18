@@ -151,13 +151,7 @@ function getGalleryRowSpan(photo: PhotoRecord, containerWidth: number, size: Vie
   const aspectRatio = Math.max(photo.height, 1) / Math.max(photo.width, 1);
   const imageHeight = columnWidth * aspectRatio;
 
-  // Each grid track is GALLERY_ROW_HEIGHT_PX tall; gap is added between rows
-  // by the grid engine automatically. We just need enough row-tracks to cover
-  // imageHeight plus one gap unit (the gap after this item).
-  return Math.max(
-    Math.ceil((imageHeight + gap) / GALLERY_ROW_HEIGHT_PX),
-    1,
-  );
+  return Math.max(Math.ceil(imageHeight / GALLERY_ROW_HEIGHT_PX), 1);
 }
 
 function createLocalPhoto(
