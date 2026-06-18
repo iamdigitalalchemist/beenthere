@@ -31,7 +31,7 @@ export function PhotosTabHeader({
         <div className="flex gap-1 rounded-2xl p-1 w-fit overflow-x-auto" style={{ background: "rgba(255,255,255,.06)" }}>
           {[
             { id: "all", label: "All photos" },
-            { id: "albums", label: `Albums${totalAlbums > 0 ? ` · ${totalAlbums}` : ""}` },
+            { id: "albums", label: "Albums" },
           ].map((v) => (
             <Link
               className="rounded-xl px-4 py-2 text-sm font-semibold whitespace-nowrap transition active:scale-95"
