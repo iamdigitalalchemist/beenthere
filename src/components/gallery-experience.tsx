@@ -1162,9 +1162,18 @@ export function GalleryExperience({
         {/* Top row: logo + event name + guest profile */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
+            {/* Mobile: icon only */}
             <Image
               alt="beenThere"
-              className="shrink-0 brightness-0 invert opacity-70"
+              className="shrink-0 sm:hidden"
+              height={22}
+              src="/icon-white.webp"
+              width={22}
+            />
+            {/* Desktop: full wordmark */}
+            <Image
+              alt="beenThere"
+              className="hidden shrink-0 brightness-0 invert opacity-70 sm:block"
               height={18}
               src="/logo.webp"
               width={72}

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent } from "react";
+import Image from "next/image";
 import { GuestRecoveryCodePanel } from "@/components/gallery/guest-recovery-code-panel";
 import { ParticipantAvatar } from "@/components/gallery/participant-avatar";
 import {
@@ -138,6 +139,13 @@ export function IdentitySheet({
         <div
           className="mx-auto mb-4 h-1 w-10 rounded-full sm:hidden"
           style={{ background: "rgba(255,255,255,.15)" }}
+        />
+        <Image
+          alt="beenThere"
+          className="mb-4 brightness-0 invert opacity-60"
+          height={20}
+          src="/logo.webp"
+          width={80}
         />
         <h2
           className="text-xl font-bold"
