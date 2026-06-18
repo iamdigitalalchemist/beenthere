@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6DAE"/>
+      <stop offset="100%" stop-color="#B35DFF"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+  <!-- Camera+pin icon, scaled and centred -->
+  <g transform="translate(82, 82) scale(0.68)" fill="none" stroke="white" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Camera body -->
+    <path d="M488 104H336l-44-60H220l-44 60H24C11 104 0 115 0 128v304c0 13 11 24 24 24h464c13 0 24-11 24-24V128c0-13-11-24-24-24z"/>
+    <!-- Lens circle -->
+    <circle cx="256" cy="272" r="90"/>
+    <!-- Pin drop from bottom of lens -->
+    <path d="M256 362 c0 0 -60 70 -60 110 a60 60 0 0 0 120 0 c0-40-60-110-60-110z"/>
+    <!-- Inner pin dot -->
+    <circle cx="256" cy="472" r="18" fill="white" stroke="none"/>
+    <!-- Viewfinder dot -->
+    <circle cx="420" cy="164" r="20" fill="white" stroke="none"/>
+  </g>
+</svg>
