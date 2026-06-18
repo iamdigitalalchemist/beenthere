@@ -148,10 +148,11 @@ function getGalleryRowSpan(photo: PhotoRecord, containerWidth: number, size: Vie
   const columns = getGalleryColumnCount(containerWidth, size);
   const gap = getGalleryGap(containerWidth, size);
   const columnWidth = (containerWidth - gap * (columns - 1)) / columns;
-  const aspectRatio = Math.max(photo.height, 1) / Math.max(photo.width, 1);
+  // Cap at 5:4 portrait so no single photo dominates the grid
+  const aspectRatio = Math.min(Math.max(photo.height, 1) / Math.max(photo.width, 1), 1.25);
   const imageHeight = columnWidth * aspectRatio;
 
-  return Math.max(Math.ceil(imageHeight / GALLERY_ROW_HEIGHT_PX), 1);
+  return Math.max(Math.round(imageHeight / GALLERY_ROW_HEIGHT_PX), 1);
 }
 
 function createLocalPhoto(
