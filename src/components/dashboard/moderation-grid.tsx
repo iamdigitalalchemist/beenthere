@@ -740,17 +740,13 @@ export function ModerationGrid({
               </div>
             ) : (
               <div
-                className="relative min-w-0 overflow-x-auto rounded-2xl py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className={`relative min-w-0 overflow-x-auto rounded-2xl py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${pillsAtEnd ? "" : "pills-fade-mask"}`}
                 onScroll={(e) => {
                   const el = e.currentTarget;
                   setPillsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
                 }}
                 ref={pillsScrollRef}
-                style={{
-                  background: "rgba(255,255,255,.06)",
-                  maskImage: pillsAtEnd ? "none" : "linear-gradient(to right, black 70%, transparent 100%)",
-                  WebkitMaskImage: pillsAtEnd ? "none" : "linear-gradient(to right, black 70%, transparent 100%)",
-                }}
+                style={{ background: "rgba(255,255,255,.06)" }}
               >
                 <div className="relative flex gap-1 p-1 w-max sm:w-fit">
                   {/* Sliding indicator */}
