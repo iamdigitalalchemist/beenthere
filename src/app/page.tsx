@@ -172,18 +172,6 @@ export default async function Home() {
             >
               {user ? "Create an event" : "Get started free"}
             </Link>
-            <Link
-              className="whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold transition active:scale-95"
-              href="/join/demo-join-token"
-              style={{
-                background: "rgba(255,255,255,.06)",
-                border: "1px solid rgba(255,255,255,.10)",
-                backdropFilter: "blur(12px)",
-                color: "rgba(255,255,255,.80)",
-              }}
-            >
-              Try demo
-            </Link>
           </div>
         </div>
 
@@ -207,21 +195,20 @@ export default async function Home() {
         {/* Mobile horizontal scroll */}
         <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] lg:hidden">
           {DEMO_EVENTS.map((event) => (
-            <Link
-              className="group relative shrink-0 w-44 overflow-hidden"
-              href="/join/demo-join-token"
+            <div
+              className="relative shrink-0 w-44 overflow-hidden"
               key={event.id}
               style={{ borderRadius: "24px" }}
             >
               <div className="aspect-[3/4] w-full overflow-hidden" style={{ borderRadius: "24px" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="" className="size-full object-cover transition duration-300 group-hover:scale-105" src={event.cover} />
+                <img alt="" className="size-full object-cover" src={event.cover} />
               </div>
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 40%, rgba(0,0,0,.70) 100%)", borderRadius: "24px" }} />
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <p className="text-[13px] font-bold leading-tight" style={{ color: "rgba(255,255,255,.92)" }}>{event.name}</p>
               </div>
-            </Link>
+            </div>
           ))}
           <Link
             className="group shrink-0 w-44 overflow-hidden transition"
@@ -245,21 +232,20 @@ export default async function Home() {
         {/* Desktop grid */}
         <div className="hidden gap-4 lg:grid lg:grid-cols-5">
           {DEMO_EVENTS.map((event) => (
-            <Link
-              className="group relative overflow-hidden"
-              href="/join/demo-join-token"
+            <div
+              className="relative overflow-hidden"
               key={event.id}
               style={{ borderRadius: "24px" }}
             >
               <div className="aspect-[3/4] w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="" className="size-full object-cover transition duration-500 group-hover:scale-105" src={event.cover} />
+                <img alt="" className="size-full object-cover" src={event.cover} />
               </div>
               <div className="absolute inset-0" style={{ background: "linear-gradient(transparent 40%, rgba(0,0,0,.72) 100%)" }} />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <p className="text-sm font-bold leading-tight" style={{ color: "rgba(255,255,255,.92)" }}>{event.name}</p>
               </div>
-            </Link>
+            </div>
           ))}
           <Link
             className="group relative overflow-hidden transition"
