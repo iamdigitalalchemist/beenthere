@@ -1377,9 +1377,9 @@ export function GalleryExperience({
                     />
                   )}
                   {selectMode && (
-                    <div className={`pointer-events-none absolute left-2 top-2 z-20 flex size-6 items-center justify-center rounded-full border-2 transition ${isSelected ? "border-accent bg-accent" : "border-white/80 bg-black/30"}`}>
+                    <div className={`pointer-events-none absolute left-1.5 top-1.5 z-20 flex size-4 items-center justify-center rounded-full border-2 transition ${isSelected ? "border-accent bg-accent" : "border-white/80 bg-black/30"}`}>
                       {isSelected && (
-                        <svg fill="none" height="12" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="12">
+                        <svg fill="none" height="9" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="9">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
