@@ -138,7 +138,7 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         )}
 
         {/* ── Tabs ── */}
-        <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+        <div className="mb-7 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <SlidingTabBar
             activeId={tab}
             className="w-max sm:w-fit"
