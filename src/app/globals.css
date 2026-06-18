@@ -37,8 +37,8 @@ body {
   overflow-x: clip;
 }
 
-/* Remove inline mask on sm+ so desktop pills always show fully */
-@media (min-width: 640px) {
+/* Remove pill fade at 375px and above */
+@media (min-width: 375px) {
   .pills-no-fade-desktop {
     mask-image: none !important;
     -webkit-mask-image: none !important;
