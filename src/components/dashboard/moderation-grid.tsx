@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoSharePanel } from "@/components/dashboard/photo-share-panel";
 import { PhotoDetailView } from "@/components/gallery/photo-detail-view";
 import { ViewSizeToggle, type ViewSize } from "@/components/view-size-toggle";
@@ -420,6 +420,8 @@ export function ModerationGrid({
   const setSelectMode = onExternalSelectModeChange ?? setInternalSelectMode;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
+  const pillsScrollRef = useRef<HTMLDivElement>(null);
+  const [pillsAtEnd, setPillsAtEnd] = useState(false);
   const [bulkAlbumIds, setBulkAlbumIds] = useState<string[] | null>(null);
 
   async function toggleGallery(photoId: string, inGallery: boolean) {
@@ -728,10 +730,15 @@ export function ModerationGrid({
             ) : (
               <div
                 className="relative min-w-0 overflow-x-auto rounded-2xl py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  setPillsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+                }}
+                ref={pillsScrollRef}
                 style={{
                   background: "rgba(255,255,255,.06)",
-                  maskImage: "linear-gradient(to right, black 70%, transparent 100%)",
-                  WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)",
+                  maskImage: pillsAtEnd ? "none" : "linear-gradient(to right, black 70%, transparent 100%)",
+                  WebkitMaskImage: pillsAtEnd ? "none" : "linear-gradient(to right, black 70%, transparent 100%)",
                 }}
               >
                 <div className="flex gap-1 p-1 w-max sm:w-fit">
