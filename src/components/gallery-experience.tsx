@@ -1162,23 +1162,14 @@ export function GalleryExperience({
         {/* Top row: logo + event name + guest profile */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
-            {/* Mobile: icon only */}
             <Image
               alt="beenThere"
-              className="shrink-0 sm:hidden"
+              className="shrink-0 opacity-80"
               height={22}
               src="/icon-white.webp"
               width={22}
             />
-            {/* Desktop: full wordmark */}
-            <Image
-              alt="beenThere"
-              className="hidden shrink-0 brightness-0 invert opacity-70 sm:block"
-              height={18}
-              src="/logo.webp"
-              width={72}
-            />
-            <span style={{ color: "rgba(255,255,255,.20)" }}>·</span>
+            <span style={{ color: "rgba(255,255,255,.15)" }}>·</span>
             <h1
               className="truncate text-sm font-semibold sm:text-base"
               style={{ color: "rgba(255,255,255,.70)", letterSpacing: "-0.01em" }}
@@ -1212,69 +1203,69 @@ export function GalleryExperience({
         </div>
 
         <div className="pointer-events-auto relative z-50 mx-auto w-full max-w-6xl space-y-2 px-4 pb-3 sm:px-6">
-          {/* Filter row: pills + view toggle + select */}
+          {/* Filter row: pills left, view toggle + select right */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              {selectMode ? (
-                <div className="flex items-center gap-2">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>
-                    <input
-                      checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
-                      className="size-4 accent-accent"
-                      onChange={toggleSelectAll}
-                      type="checkbox"
-                    />
-                    {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-                  </label>
-                  <button
-                    className="text-sm font-semibold transition active:scale-95"
-                    onClick={exitSelectMode}
-                    style={{ color: "rgba(255,255,255,.40)" }}
-                    type="button"
+            {/* Left: filter pills or select-mode controls */}
+            {selectMode ? (
+              <div className="flex items-center gap-2 min-w-0">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold" style={{ color: "rgba(255,255,255,.80)" }}>
+                  <input
+                    checked={selectedIds.size === filteredPhotos.length && filteredPhotos.length > 0}
+                    className="size-4 accent-accent"
+                    onChange={toggleSelectAll}
+                    type="checkbox"
+                  />
+                  {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+                </label>
+                <button
+                  className="text-sm font-semibold transition active:scale-95"
+                  onClick={exitSelectMode}
+                  style={{ color: "rgba(255,255,255,.40)" }}
+                  type="button"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <fieldset className="flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
+                <legend className="sr-only">Filter photos</legend>
+                {FILTER_OPTIONS.map((option) => (
+                  <label
+                    className="tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
+                    key={option.id}
+                    style={filter === option.id
+                      ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
+                      : { color: "rgba(255,255,255,.40)" }
+                    }
                   >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <fieldset className="flex rounded-full p-1" style={{ background: "rgba(255,255,255,.06)" }}>
-                    <legend className="sr-only">Filter photos</legend>
-                    {FILTER_OPTIONS.map((option) => (
-                      <label
-                        className="tap-target flex cursor-pointer justify-center rounded-full px-3 py-2 text-center text-sm font-semibold transition active:scale-[0.98]"
-                        key={option.id}
-                        style={filter === option.id
-                          ? { background: "rgba(255,255,255,.12)", color: "rgba(255,255,255,.92)" }
-                          : { color: "rgba(255,255,255,.40)" }
-                        }
-                      >
-                        <input
-                          checked={filter === option.id}
-                          className="sr-only"
-                          name="gallery-filter"
-                          onChange={() => setFilter(option.id)}
-                          type="radio"
-                          value={option.id}
-                        />
-                        {option.label}
-                      </label>
-                    ))}
-                  </fieldset>
-                  <ViewSizeToggle onChange={changeViewSize} value={viewSize} />
-                </>
-              )}
+                    <input
+                      checked={filter === option.id}
+                      className="sr-only"
+                      name="gallery-filter"
+                      onChange={() => setFilter(option.id)}
+                      type="radio"
+                      value={option.id}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            {/* Right: view toggle + select — always grouped together */}
+            <div className="flex shrink-0 items-center gap-1.5">
+              {!selectMode && <ViewSizeToggle onChange={changeViewSize} value={viewSize} />}
+              <button
+                className="rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
+                onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
+                style={selectMode
+                  ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
+                  : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
+                }
+                type="button"
+              >
+                Select
+              </button>
             </div>
-            <button
-              className="shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95"
-              onClick={() => { setSelectMode((v) => !v); setSelectedIds(new Set()); }}
-              style={selectMode
-                ? { background: "rgba(255,109,174,.15)", border: "1px solid rgba(255,109,174,.25)", color: "#FF6DAE" }
-                : { background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.65)" }
-              }
-              type="button"
-            >
-              Select
-            </button>
           </div>
           {/* Search: full width on its own row */}
           <input
