@@ -433,7 +433,7 @@ export function PhotoDetailView({
             style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.10)", color: "rgba(255,255,255,.80)" }}
             type="button"
           >
-            &lt;
+            
           </button>
           <h2
             className="text-base font-semibold"

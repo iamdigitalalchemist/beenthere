@@ -187,7 +187,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                       className="shrink-0 text-sm font-semibold transition"
                       style={{ color: "rgba(255,255,255,.30)" }}
                     >
-                      Open &gt;
+                      Open
                     </span>
                   </Link>
                 );
@@ -221,7 +221,7 @@ export default async function DashboardPage({ searchParams }: Props) {
                       <p className="mt-0.5 text-xs" style={{ color: "rgba(255,255,255,.35)" }}>Seeded demo event</p>
                     </div>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold" style={{ color: "rgba(255,255,255,.30)" }}>Open &gt;</span>
+                  <span className="shrink-0 text-sm font-semibold" style={{ color: "rgba(255,255,255,.30)" }}>Open</span>
                 </Link>
               )}
 

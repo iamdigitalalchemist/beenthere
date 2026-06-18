@@ -181,7 +181,7 @@ export default async function Home() {
                 color: "rgba(255,255,255,.80)",
               }}
             >
-              Try demo &gt;
+              Try demo
             </Link>
           </div>
         </div>

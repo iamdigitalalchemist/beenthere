@@ -51,7 +51,7 @@ export default async function SignagePage({ params }: SignagePageProps) {
               href={`/dashboard/events/${dashboard.event.publicId}`}
               style={{ color: "rgba(255,255,255,.45)" }}
             >
-              &lt; Back to dashboard
+              Back to dashboard
             </Link>
             <PrintSignageButton />
           </div>
