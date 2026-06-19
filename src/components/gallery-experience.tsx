@@ -1410,23 +1410,41 @@ function GalleryExperienceInner({
                     onClick={() => !selectMode && openLightbox(index)}
                     type="button"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt={photo.mediaType === "video" ? `Video by ${uploaderName}` : `Photo by ${uploaderName}`}
-                      className="pointer-events-none h-full w-full bg-border object-cover transition duration-300 group-hover:scale-[1.02]"
-                      draggable={false}
-                      onContextMenu={(e) => e.preventDefault()}
-                      src={photo.thumbnailUrl || undefined}
-                      style={{ WebkitTouchCallout: "none" }}
-                    />
-                    {photo.mediaType === "video" && (
-                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                        <span className="flex size-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
-                          <svg fill="white" height="16" viewBox="0 0 24 24" width="16">
-                            <polygon points="5,3 19,12 5,21" />
+                    {!photo.thumbnailUrl && isProcessing ? (
+                      <div
+                        className={`pointer-events-none flex h-full w-full animate-pulse items-center justify-center bg-white/5 ${squareCrop ? "aspect-square" : "absolute inset-0"}`}
+                      >
+                        {photo.mediaType === "video" ? (
+                          <svg fill="none" height="32" stroke="rgba(255,255,255,.25)" strokeWidth="1.5" viewBox="0 0 24 24" width="32">
+                            <path d="M15 10l4.553-2.277A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
-                        </span>
-                      </span>
+                        ) : (
+                          <svg fill="none" height="32" stroke="rgba(255,255,255,.25)" strokeWidth="1.5" viewBox="0 0 24 24" width="32">
+                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt={photo.mediaType === "video" ? `Video by ${uploaderName}` : `Photo by ${uploaderName}`}
+                          className="pointer-events-none h-full w-full bg-border object-cover transition duration-300 group-hover:scale-[1.02]"
+                          draggable={false}
+                          onContextMenu={(e) => e.preventDefault()}
+                          src={photo.thumbnailUrl || undefined}
+                          style={{ WebkitTouchCallout: "none" }}
+                        />
+                        {photo.mediaType === "video" && (
+                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                            <span className="flex size-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
+                              <svg fill="white" height="16" viewBox="0 0 24 24" width="16">
+                                <polygon points="5,3 19,12 5,21" />
+                              </svg>
+                            </span>
+                          </span>
+                        )}
+                      </>
                     )}
                   </button>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
