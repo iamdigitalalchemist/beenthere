@@ -379,7 +379,7 @@ function GalleryExperienceInner({
   // Poll for status updates when any photo is still processing.
   // This is a fallback for when the Supabase subscription misses the Trigger.dev update.
   useEffect(() => {
-    const hasProcessing = photos.some((p) => p.status !== "ready" && p.thumbnailUrl);
+    const hasProcessing = photos.some((p) => p.status !== "ready");
     if (!hasProcessing) return;
 
     const interval = setInterval(async () => {
