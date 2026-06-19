@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getEventPhotos } from "@/server/data";
+import { getEventAccessPolicyById, getEventPhotos } from "@/server/data";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
 
 type EventPhotosRouteProps = {
@@ -16,7 +16,17 @@ export async function GET(_request: Request, { params }: EventPhotosRouteProps) 
     return pinDenied;
   }
 
-  const gallery = await getEventPhotos(eventId);
+  const [gallery, policy] = await Promise.all([
+    getEventPhotos(eventId),
+    getEventAccessPolicyById(eventId),
+  ]);
 
-  return NextResponse.json(gallery);
+  // Only cache publicly when the event has no PIN — PIN-gated events must stay private.
+  const cacheControl = policy?.pinEnabled
+    ? "private, no-store"
+    : "public, s-maxage=5, stale-while-revalidate=10";
+
+  return NextResponse.json(gallery, {
+    headers: { "Cache-Control": cacheControl },
+  });
 }
