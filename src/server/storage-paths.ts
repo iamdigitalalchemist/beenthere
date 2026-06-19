@@ -24,3 +24,15 @@ export function createPhotoDerivativeKeys(input: {
     previewKey: `${baseKey}/preview-2048.jpg`,
   };
 }
+
+export function createVideoDerivativeKeys(input: {
+  eventId: string;
+  photoId: string;
+}) {
+  const baseKey = `events/${input.eventId}/derivatives/${input.photoId}`;
+
+  return {
+    posterKey: `${baseKey}/poster.jpg`,
+    playbackKey: `${baseKey}/playback.mp4`,
+  };
+}

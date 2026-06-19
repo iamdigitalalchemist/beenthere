@@ -64,6 +64,7 @@ type PhotoRow = {
   original_file_name: string;
   original_content_type: string;
   original_size_bytes: number;
+  media_type: PhotoRecord["mediaType"];
   width: number | null;
   height: number | null;
   uploaded_at: string;
@@ -124,6 +125,7 @@ async function mapPhotoRow(row: PhotoRow): Promise<PhotoRecord> {
     originalFileName: row.original_file_name,
     originalContentType: row.original_content_type,
     originalSizeBytes: toNumber(row.original_size_bytes),
+    mediaType: row.media_type ?? "image",
     width: row.width ?? 1,
     height: row.height ?? 1,
     uploadedAt: toIsoString(row.uploaded_at),
@@ -364,7 +366,7 @@ export async function getEventGallery(publicId: string) {
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
             p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
-            p.original_content_type, p.original_size_bytes, p.width, p.height,
+            p.original_content_type, p.original_size_bytes, p.media_type, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
        left join beenthere.event_participants ep
@@ -415,7 +417,7 @@ export async function getEventPhotos(eventId: string) {
   >(
     `select p.id, p.event_id, p.event_participant_id, p.status, p.visibility,
             p.in_gallery, p.original_key, p.thumbnail_key, p.preview_key, p.original_file_name,
-            p.original_content_type, p.original_size_bytes, p.width, p.height,
+            p.original_content_type, p.original_size_bytes, p.media_type, p.width, p.height,
             p.uploaded_at, p.taken_at, ep.display_name as participant_display_name
        from beenthere.photos p
        left join beenthere.event_participants ep

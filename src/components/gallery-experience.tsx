@@ -168,6 +168,7 @@ function createLocalPhoto(
 ): PhotoRecord {
   const previewUrl = URL.createObjectURL(file);
   const now = new Date().toISOString();
+  const mediaType = file.type.startsWith("video/") ? "video" : "image";
 
   return {
     id: crypto.randomUUID(),
@@ -182,6 +183,7 @@ function createLocalPhoto(
     originalFileName: file.name,
     originalContentType: file.type || "image/jpeg",
     originalSizeBytes: file.size,
+    mediaType,
     width: 1,
     height: 1,
     uploadedAt: now,
@@ -1410,13 +1412,22 @@ function GalleryExperienceInner({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      alt={`Photo by ${uploaderName}`}
+                      alt={photo.mediaType === "video" ? `Video by ${uploaderName}` : `Photo by ${uploaderName}`}
                       className="pointer-events-none h-full w-full bg-border object-cover transition duration-300 group-hover:scale-[1.02]"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                       src={photo.thumbnailUrl || undefined}
                       style={{ WebkitTouchCallout: "none" }}
                     />
+                    {photo.mediaType === "video" && (
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <span className="flex size-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
+                          <svg fill="white" height="16" viewBox="0 0 24 24" width="16">
+                            <polygon points="5,3 19,12 5,21" />
+                          </svg>
+                        </span>
+                      </span>
+                    )}
                   </button>
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-3 opacity-0 transition group-hover:opacity-100">
                     <div className="flex items-center gap-2 text-white">
@@ -1509,9 +1520,9 @@ function GalleryExperienceInner({
             className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
             style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
           >
-            Add photos
+            Add photos &amp; videos
             <input
-              accept="image/jpeg,image/png,image/heic,image/heif"
+              accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm"
               className="sr-only"
               multiple
               onChange={(inputEvent) => handleUpload(inputEvent.target.files)}

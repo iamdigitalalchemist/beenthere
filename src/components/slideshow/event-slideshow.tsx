@@ -18,7 +18,10 @@ type PhotosResponse = {
 
 function getVisibleReadyPhotos(photos: PhotoRecord[]) {
   return photos.filter(
-    (photo) => photo.status === "ready" && photo.visibility === "visible",
+    (photo) =>
+      photo.status === "ready" &&
+      photo.visibility === "visible" &&
+      photo.mediaType !== "video",
   );
 }
 

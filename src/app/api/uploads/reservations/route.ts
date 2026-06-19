@@ -5,7 +5,7 @@ import { getR2Env, isLocalUploadStorageEnabled } from "@/server/env";
 import { createLocalMediaKey } from "@/server/local-media";
 import { createSignedPhotoUploadUrl } from "@/server/r2";
 import { createOriginalPhotoKey } from "@/server/storage-paths";
-import { validateUploadBatch } from "@/server/upload-policy";
+import { validateUploadBatch, isVideoType } from "@/server/upload-policy";
 import { logger } from "@/server/logger";
 import * as Sentry from "@sentry/nextjs";
 import type {
@@ -158,12 +158,14 @@ export async function POST(request: Request) {
       const visibility = policy === "strict" ? "hidden" : "visible";
       const inGallery = policy === "open";
 
+      const mediaType = isVideoType(file.type) ? "video" : "image";
+
       await client.query(
         `insert into beenthere.photos (
             id, event_id, event_participant_id, status, visibility, in_gallery, original_key,
-            original_file_name, original_content_type, original_size_bytes
+            original_file_name, original_content_type, original_size_bytes, media_type
           )
-          values ($1, $2, $3, 'uploading', $8, $9, $4, $5, $6, $7)`,
+          values ($1, $2, $3, 'uploading', $8, $9, $4, $5, $6, $7, $10)`,
         [
           reservation.photoId,
           body.eventId,
@@ -174,6 +176,7 @@ export async function POST(request: Request) {
           file.size,
           visibility,
           inGallery,
+          mediaType,
         ],
       );
 

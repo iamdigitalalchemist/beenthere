@@ -80,6 +80,8 @@ export type PhotoTag = {
   taggedByParticipantId: string;
 };
 
+export type MediaType = "image" | "video";
+
 export type PhotoRecord = {
   id: string;
   eventId: string;
@@ -93,6 +95,7 @@ export type PhotoRecord = {
   originalFileName: string;
   originalContentType: string;
   originalSizeBytes: number;
+  mediaType: MediaType;
   width: number;
   height: number;
   uploadedAt: string;

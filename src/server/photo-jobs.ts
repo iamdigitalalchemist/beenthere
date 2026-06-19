@@ -95,6 +95,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
       original_file_name: string;
       original_content_type: string;
       original_size_bytes: number;
+      media_type: PhotoRecord["mediaType"];
       width: number | null;
       height: number | null;
       uploaded_at: string;
@@ -109,7 +110,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
       where id = $1
       returning id, event_id, event_participant_id, status, visibility, in_gallery,
                 original_key, original_file_name, original_content_type,
-                original_size_bytes, width, height, uploaded_at, taken_at`,
+                original_size_bytes, media_type, width, height, uploaded_at, taken_at`,
     [photoId, thumbnailKey, previewKey, derivatives.width, derivatives.height],
   );
   const updatedPhoto = updateResult.rows[0];
@@ -144,6 +145,7 @@ export async function processUploadedPhoto(photoId: string): Promise<PhotoRecord
     originalFileName: updatedPhoto.original_file_name,
     originalContentType: updatedPhoto.original_content_type,
     originalSizeBytes: toNumber(updatedPhoto.original_size_bytes),
+    mediaType: updatedPhoto.media_type ?? "image",
     width: updatedPhoto.width ?? 1,
     height: updatedPhoto.height ?? 1,
     uploadedAt: toIsoString(updatedPhoto.uploaded_at),

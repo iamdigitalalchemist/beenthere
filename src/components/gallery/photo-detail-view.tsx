@@ -464,20 +464,38 @@ export function PhotoDetailView({
           }}
           onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            alt={`Photo by ${uploaderName}`}
-            className={`aspect-[4/5] w-full bg-border object-cover shadow-soft ${
-              slideDir === "left" ? "photo-slide-in-left" : slideDir === "right" ? "photo-slide-in-right" : "lightbox-photo-enter"
-            }`}
-            key={photo.id}
-            onAnimationEnd={() => setSlideDir(null)}
-            src={photo.previewUrl || photo.thumbnailUrl || undefined}
-            style={{
-              transform: swipeDx ? `translateX(${swipeDx * 0.4}px) rotate(${swipeDx * 0.01}deg)` : undefined,
-              transition: swipeDx ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
-            }}
-          />
+          {photo.mediaType === "video" ? (
+            <video
+              className={`aspect-[4/5] w-full bg-border object-contain shadow-soft ${
+                slideDir === "left" ? "photo-slide-in-left" : slideDir === "right" ? "photo-slide-in-right" : "lightbox-photo-enter"
+              }`}
+              controls
+              key={photo.id}
+              onAnimationEnd={() => setSlideDir(null)}
+              playsInline
+              poster={photo.thumbnailUrl || undefined}
+              src={`/api/photos/${photo.id}/original`}
+              style={{
+                transform: swipeDx ? `translateX(${swipeDx * 0.4}px) rotate(${swipeDx * 0.01}deg)` : undefined,
+                transition: swipeDx ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
+              }}
+            />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              alt={`Photo by ${uploaderName}`}
+              className={`aspect-[4/5] w-full bg-border object-cover shadow-soft ${
+                slideDir === "left" ? "photo-slide-in-left" : slideDir === "right" ? "photo-slide-in-right" : "lightbox-photo-enter"
+              }`}
+              key={photo.id}
+              onAnimationEnd={() => setSlideDir(null)}
+              src={photo.previewUrl || photo.thumbnailUrl || undefined}
+              style={{
+                transform: swipeDx ? `translateX(${swipeDx * 0.4}px) rotate(${swipeDx * 0.01}deg)` : undefined,
+                transition: swipeDx ? "none" : "transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94)",
+              }}
+            />
+          )}
           {photos.length > 1 && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
               {photos.length <= 20 ? (

@@ -3,6 +3,8 @@ import { getDatabasePool } from "@/server/db";
 import { assertPinAccessForEventId } from "@/server/pin-guard";
 import { tasks } from "@trigger.dev/sdk/v3";
 import { processUploadedPhoto } from "@/server/photo-jobs";
+import { processUploadedVideo } from "@/server/video-jobs";
+import { isVideoType } from "@/server/upload-policy";
 import { logger } from "@/server/logger";
 import * as Sentry from "@sentry/nextjs";
 
@@ -78,19 +80,26 @@ export async function POST(request: Request) {
     content_type: photoRow.original_content_type,
   });
 
-  // When Trigger.dev is not configured (local dev), process the photo inline.
+  const isVideo = isVideoType(photoRow.original_content_type);
+
+  // When Trigger.dev is not configured (local dev), process inline.
   if (!process.env.TRIGGER_SECRET_KEY) {
     try {
-      const photo = await processUploadedPhoto(photoRow.id);
+      const photo = isVideo
+        ? await processUploadedVideo(photoRow.id)
+        : await processUploadedPhoto(photoRow.id);
       return NextResponse.json({ photo });
     } catch (err) {
       Sentry.captureException(err, { extra: { photo_id: photoRow.id } });
-      logger.error("photo_inline_processing_failed", {
+      logger.error("media_inline_processing_failed", {
         photo_id: photoRow.id,
+        is_video: isVideo,
         error: err instanceof Error ? err.message : String(err),
       });
       // Fall through and return the processing state so the client isn't left hanging.
     }
+  } else if (isVideo) {
+    await tasks.trigger("process-uploaded-video", { photoId: photoRow.id });
   } else {
     await tasks.trigger("process-uploaded-photo", { photoId: photoRow.id });
   }
@@ -109,6 +118,7 @@ export async function POST(request: Request) {
       originalFileName: photoRow.original_file_name,
       originalContentType: photoRow.original_content_type,
       originalSizeBytes: Number(photoRow.original_size_bytes),
+      mediaType: isVideo ? "video" : "image",
       width: 1,
       height: 1,
       uploadedAt: photoRow.uploaded_at,
