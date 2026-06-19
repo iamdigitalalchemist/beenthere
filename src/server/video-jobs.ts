@@ -1,9 +1,14 @@
 import ffmpeg from "fluent-ffmpeg";
 import { getDatabasePool } from "@/server/db";
+
+// The @trigger.dev/build ffmpeg extension sets FFMPEG_PATH/FFPROBE_PATH in the worker.
+// fluent-ffmpeg reads these automatically, but set them explicitly as a belt-and-suspenders.
+if (process.env.FFMPEG_PATH) ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+if (process.env.FFPROBE_PATH) ffmpeg.setFfprobePath(process.env.FFPROBE_PATH);
 import { createLocalMediaKey, isLocalMediaKey } from "@/server/local-media";
 import {
   createSignedPhotoReadUrl,
-  getR2ObjectBuffer,
+  streamR2ObjectToFile,
   putR2Object,
 } from "@/server/r2";
 import { createVideoDerivativeKeys } from "@/server/storage-paths";
@@ -101,8 +106,7 @@ export async function processUploadedVideo(photoId: string): Promise<PhotoRecord
   const mp4Path = path.join(tmpDir, "playback.mp4");
 
   try {
-    const videoBuffer = await getR2ObjectBuffer(photoRow.original_key);
-    await fs.writeFile(videoPath, videoBuffer);
+    await streamR2ObjectToFile(photoRow.original_key, videoPath);
 
     // Run poster extraction and transcoding in parallel.
     await Promise.all([

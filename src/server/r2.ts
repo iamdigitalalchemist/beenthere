@@ -128,6 +128,29 @@ export async function getR2ObjectBuffer(objectKey: string) {
   return Buffer.from(body);
 }
 
+export async function streamR2ObjectToFile(objectKey: string, destPath: string) {
+  if (isLocalMediaKey(objectKey)) {
+    const buf = await readLocalMediaBuffer(objectKey);
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(destPath, buf);
+    return;
+  }
+
+  const { bucketName, client } = createR2Client();
+  const response = await client.send(
+    new GetObjectCommand({ Bucket: bucketName, Key: objectKey }),
+  );
+
+  if (!response.Body) {
+    throw new Error(`R2 object has no body: ${objectKey}`);
+  }
+
+  const { createWriteStream } = await import("node:fs");
+  const { pipeline } = await import("node:stream/promises");
+  const writer = createWriteStream(destPath);
+  await pipeline(response.Body as unknown as NodeJS.ReadableStream, writer);
+}
+
 export async function putR2Object(input: {
   objectKey: string;
   body: Buffer;
