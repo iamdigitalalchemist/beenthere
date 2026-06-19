@@ -978,11 +978,14 @@ function GalleryExperienceInner({
       // callback doesn't treat our own upload as "unseen" new photos.
       for (const p of optimisticPhotos) photoIdsRef.current.add(p.id);
       setPhotos((currentPhotos) => [...optimisticPhotos, ...currentPhotos]);
-      setUploadMessage(
-        `Uploading ${optimisticPhotos.length} photo${
-          optimisticPhotos.length === 1 ? "" : "s"
-        } to private storage...`,
-      );
+      const uploadingVideos = optimisticPhotos.filter((p) => p.mediaType === "video").length;
+      const uploadingImages = optimisticPhotos.length - uploadingVideos;
+      const uploadingLabel = uploadingVideos > 0 && uploadingImages > 0
+        ? `${optimisticPhotos.length} file${optimisticPhotos.length === 1 ? "" : "s"}`
+        : uploadingVideos > 0
+          ? `${uploadingVideos} video${uploadingVideos === 1 ? "" : "s"}`
+          : `${uploadingImages} photo${uploadingImages === 1 ? "" : "s"}`;
+      setUploadMessage(`Uploading ${uploadingLabel} to private storage...`);
 
       const completedPhotos = await Promise.all(
         reservationBody.reservations.map(async (reservation) => {
@@ -1028,10 +1031,15 @@ function GalleryExperienceInner({
           };
         }),
       );
+      const completedVideos = completedPhotos.filter((p) => p.mediaType === "video").length;
+      const completedImages = completedPhotos.length - completedVideos;
+      const completedLabel = completedVideos > 0 && completedImages > 0
+        ? `${completedPhotos.length} file${completedPhotos.length === 1 ? "" : "s"}`
+        : completedVideos > 0
+          ? `${completedVideos} video${completedVideos === 1 ? "" : "s"}`
+          : `${completedImages} photo${completedImages === 1 ? "" : "s"}`;
       setUploadMessage(
-        `Uploaded ${completedPhotos.length} photo${
-          completedPhotos.length === 1 ? "" : "s"
-        }${reservationBody.skippedFiles?.length ? `; ${reservationBody.skippedFiles.length} skipped due to storage limits` : ""}.`,
+        `Uploaded ${completedLabel}${reservationBody.skippedFiles?.length ? `; ${reservationBody.skippedFiles.length} skipped due to storage limits` : ""}.`,
       );
     } catch {
       const localPhotos = selectedFiles.map((file) =>
@@ -1410,9 +1418,9 @@ function GalleryExperienceInner({
                     onClick={() => !selectMode && openLightbox(index)}
                     type="button"
                   >
-                    {!photo.thumbnailUrl && isProcessing ? (
+                    {isProcessing && !photo.thumbnailUrl ? (
                       <div
-                        className={`pointer-events-none flex h-full w-full animate-pulse items-center justify-center bg-white/5 ${squareCrop ? "aspect-square" : "absolute inset-0"}`}
+                        className={`pointer-events-none flex animate-pulse items-center justify-center bg-white/5 ${squareCrop ? "aspect-square w-full" : "absolute inset-0"}`}
                       >
                         {photo.mediaType === "video" ? (
                           <svg fill="none" height="32" stroke="rgba(255,255,255,.25)" strokeWidth="1.5" viewBox="0 0 24 24" width="32">
