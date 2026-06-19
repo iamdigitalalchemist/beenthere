@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { EventEndedScreen } from "@/components/event-ended-screen";
 import { EventPinGate } from "@/components/event-pin-gate";
 import { GalleryExperience } from "@/components/gallery-experience";
 import { getEventGallery } from "@/server/data";
@@ -19,6 +20,10 @@ export default async function EventGalleryPage({
 
   if (!gallery) {
     notFound();
+  }
+
+  if (gallery.event.status === "ended" || gallery.event.status === "expired") {
+    return <EventEndedScreen name={gallery.event.name} />;
   }
 
   const cookieStore = await cookies();

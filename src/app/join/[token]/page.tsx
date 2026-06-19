@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { getEventByJoinToken } from "@/server/data";
+import { EventEndedScreen } from "@/components/event-ended-screen";
 
 type JoinPageProps = { params: Promise<{ token: string }> };
 
@@ -9,6 +10,10 @@ export default async function JoinPage({ params }: JoinPageProps) {
   const event = await getEventByJoinToken(token);
 
   if (!event) notFound();
+
+  if (event.status === "ended" || event.status === "expired") {
+    return <EventEndedScreen name={event.name} />;
+  }
 
   if (event.status === "draft") {
     return (
