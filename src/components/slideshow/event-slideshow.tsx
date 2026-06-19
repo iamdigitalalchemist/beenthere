@@ -69,6 +69,8 @@ export function EventSlideshow({
       return;
     }
 
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
     const channel = supabase
       .channel(`event-slideshow:${event.id}`)
       .on(
@@ -79,22 +81,26 @@ export function EventSlideshow({
           table: "photos",
           filter: `event_id=eq.${event.id}`,
         },
-        async () => {
-          const response = await fetch(`/api/events/${event.id}/photos`);
-          const body = (await response.json()) as PhotosResponse;
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(async () => {
+            const response = await fetch(`/api/events/${event.id}/photos`);
+            const body = (await response.json()) as PhotosResponse;
 
-          setPhotos(getVisibleReadyPhotos(body.photos));
-          setLastUpdatedAt(
-            new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          );
+            setPhotos(getVisibleReadyPhotos(body.photos));
+            setLastUpdatedAt(
+              new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            );
+          }, 1500);
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       void supabase.removeChannel(channel);
     };
   }, [event.id]);

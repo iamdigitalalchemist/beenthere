@@ -322,6 +322,41 @@ function GalleryExperienceInner({
       return;
     }
 
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function fetchAndMergePhotos() {
+      const response = await fetch(`/api/events/${event.id}/photos`);
+      const body = await readJsonResponse<PhotosResponse>(response);
+
+      if (!body?.photos) {
+        return;
+      }
+
+      const unseenPhotos = body.photos.filter(
+        (photo) => !photoIdsRef.current.has(photo.id),
+      );
+
+      if (unseenPhotos.length > 0) {
+        setPendingPhotos(body.photos);
+        setPendingUploaderNames(body.uploaderNames);
+      } else {
+        // Merge: keep optimistic blob URLs for photos the server doesn't have thumbnails for yet.
+        setPhotos((current) => {
+          const currentMap = new Map(current.map((p) => [p.id, p]));
+          return body.photos.map((p) => {
+            const existing = currentMap.get(p.id);
+            if (!existing) return p;
+            return {
+              ...p,
+              thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+              previewUrl: p.previewUrl || existing.previewUrl,
+            };
+          });
+        });
+        setUploaderNameMap(body.uploaderNames);
+      }
+    }
+
     const channel = supabase
       .channel(`event-gallery:${event.id}`)
       .on(
@@ -332,42 +367,15 @@ function GalleryExperienceInner({
           table: "photos",
           filter: `event_id=eq.${event.id}`,
         },
-        async () => {
-          const response = await fetch(`/api/events/${event.id}/photos`);
-          const body = await readJsonResponse<PhotosResponse>(response);
-
-          if (!body?.photos) {
-            return;
-          }
-
-          const unseenPhotos = body.photos.filter(
-            (photo) => !photoIdsRef.current.has(photo.id),
-          );
-
-          if (unseenPhotos.length > 0) {
-            setPendingPhotos(body.photos);
-            setPendingUploaderNames(body.uploaderNames);
-          } else {
-            // Merge: keep optimistic blob URLs for photos the server doesn't have thumbnails for yet.
-            setPhotos((current) => {
-              const currentMap = new Map(current.map((p) => [p.id, p]));
-              return body.photos.map((p) => {
-                const existing = currentMap.get(p.id);
-                if (!existing) return p;
-                return {
-                  ...p,
-                  thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
-                  previewUrl: p.previewUrl || existing.previewUrl,
-                };
-              });
-            });
-            setUploaderNameMap(body.uploaderNames);
-          }
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => void fetchAndMergePhotos(), 1500);
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       void supabase.removeChannel(channel);
     };
   }, [event.id]);
