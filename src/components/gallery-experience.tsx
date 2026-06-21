@@ -939,7 +939,7 @@ function GalleryExperienceInner({
     file: File,
     onSuccess: (photo: PhotoRecord) => void,
     onFail: () => void,
-  ) {
+  ): Promise<"ok" | "fail"> {
     const MAX_RETRIES = 3;
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -964,31 +964,61 @@ function GalleryExperienceInner({
         }
 
         onSuccess(completionBody.photo);
-        return;
+        return "ok";
       } catch {
         if (attempt === MAX_RETRIES) {
           onFail();
-          return;
+          return "fail";
         }
         // Exponential backoff: 1s, 2s before retrying.
         await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
       }
     }
+    return "fail";
   }
 
-  async function runWithConcurrency<T>(
+  async function runWithAdaptiveConcurrency<T>(
     items: T[],
-    concurrency: number,
-    fn: (item: T) => Promise<void>,
+    initialConcurrency: number,
+    fn: (item: T) => Promise<"ok" | "fail">,
   ) {
     let index = 0;
+    let concurrency = initialConcurrency;
+    // Mutex-like: only one worker adjusts concurrency at a time.
+    let activeWorkers = 0;
+    let consecutiveFails = 0;
+
     async function worker() {
       while (index < items.length) {
         const item = items[index++];
-        await fn(item);
+        const result = await fn(item);
+
+        if (result === "fail") {
+          consecutiveFails++;
+          // Drop concurrency after 2 consecutive failures: 4→2→1.
+          if (consecutiveFails >= 2 && concurrency > 1) {
+            concurrency = Math.max(1, Math.floor(concurrency / 2));
+            consecutiveFails = 0;
+          }
+        } else {
+          consecutiveFails = 0;
+          // Recover concurrency after 3 consecutive successes, up to initial.
+          if (consecutiveFails === 0 && concurrency < initialConcurrency) {
+            concurrency = Math.min(initialConcurrency, concurrency + 1);
+          }
+        }
+
+        // Shed excess workers if concurrency dropped below active count.
+        if (activeWorkers > concurrency) {
+          activeWorkers--;
+          return;
+        }
       }
+      activeWorkers--;
     }
-    await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
+
+    activeWorkers = Math.min(concurrency, items.length);
+    await Promise.all(Array.from({ length: activeWorkers }, worker));
   }
 
   async function handleUpload(files: FileList | null) {
@@ -1096,10 +1126,10 @@ function GalleryExperienceInner({
       );
     }
 
-    await runWithConcurrency(imageReservations, 4, (reservation) =>
+    await runWithAdaptiveConcurrency(imageReservations, 4, (reservation) =>
       uploadSingleFile(reservation, selectedFiles[reservation.fileIndex], onSuccess, () => onFail(reservation, selectedFiles[reservation.fileIndex])),
     );
-    await runWithConcurrency(videoReservations, 2, (reservation) =>
+    await runWithAdaptiveConcurrency(videoReservations, 2, (reservation) =>
       uploadSingleFile(reservation, selectedFiles[reservation.fileIndex], onSuccess, () => onFail(reservation, selectedFiles[reservation.fileIndex])),
     );
 
