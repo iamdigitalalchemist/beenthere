@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { EventEndedScreen } from "@/components/event-ended-screen";
 import { EventPinGate } from "@/components/event-pin-gate";
 import { EventSlideshow } from "@/components/slideshow/event-slideshow";
 import { getJoinPath } from "@/lib/join";
@@ -18,6 +19,10 @@ export default async function SlideshowPage({ params }: SlideshowPageProps) {
 
   if (!slideshow) {
     notFound();
+  }
+
+  if (slideshow.event.status === "ended" || slideshow.event.status === "expired") {
+    return <EventEndedScreen name={slideshow.event.name} />;
   }
 
   const cookieStore = await cookies();

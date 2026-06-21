@@ -617,7 +617,7 @@ export async function createEvent(input: {
 
   const joinToken = randomBytes(18).toString("base64url");
   const startsAt = input.startsAt;
-  const endsAt = new Date(startsAt.getTime() + 24 * 60 * 60 * 1000);
+  const endsAt = new Date(startsAt.getTime() + 48 * 60 * 60 * 1000);
   const uploadClosesAt = new Date(startsAt.getTime() + 48 * 60 * 60 * 1000);
   const galleryExpiresAt = new Date(
     startsAt.getTime() + 30 * 24 * 60 * 60 * 1000,

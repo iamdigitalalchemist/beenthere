@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ActivateEventBanner } from "@/components/dashboard/activate-event-banner";
 import { EventPinSettings } from "@/components/dashboard/event-pin-settings";
 import { EventSocialsSettings } from "@/components/dashboard/event-socials-settings";
+import { EventStatusSettings } from "@/components/dashboard/event-status-settings";
 import { UploadPolicySettings } from "@/components/dashboard/upload-policy-settings";
 import { ModerationGrid } from "@/components/dashboard/moderation-grid";
 import { SmartAlbums } from "@/components/dashboard/smart-albums";
@@ -272,6 +273,12 @@ export default async function DashboardEventPage({ params, searchParams }: Props
         {/* ══ SETTINGS TAB ══ */}
         {tab === "settings" && (
           <div className="flex flex-col gap-4 max-w-lg">
+            <EventStatusSettings
+              eventPublicId={dashboard.event.publicId}
+              startsAt={dashboard.event.startsAt}
+              status={dashboard.event.status}
+            />
+
             <EventPinSettings
               eventPublicId={dashboard.event.publicId}
               pinEnabled={dashboard.event.pinEnabled}

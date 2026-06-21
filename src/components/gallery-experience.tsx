@@ -235,6 +235,8 @@ function GalleryExperienceInner({
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
+  const [failedUploads, setFailedUploads] = useState<Map<string, { file: File; reservation: UploadReservation }>>(new Map());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [viewSize, setViewSize] = useState<ViewSize>("medium");
   const [selectMode, setSelectMode] = useState(false);
@@ -322,6 +324,41 @@ function GalleryExperienceInner({
       return;
     }
 
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function fetchAndMergePhotos() {
+      const response = await fetch(`/api/events/${event.id}/photos`);
+      const body = await readJsonResponse<PhotosResponse>(response);
+
+      if (!body?.photos) {
+        return;
+      }
+
+      const unseenPhotos = body.photos.filter(
+        (photo) => !photoIdsRef.current.has(photo.id),
+      );
+
+      if (unseenPhotos.length > 0) {
+        setPendingPhotos(body.photos);
+        setPendingUploaderNames(body.uploaderNames);
+      } else {
+        // Merge: keep optimistic blob URLs for photos the server doesn't have thumbnails for yet.
+        setPhotos((current) => {
+          const currentMap = new Map(current.map((p) => [p.id, p]));
+          return body.photos.map((p) => {
+            const existing = currentMap.get(p.id);
+            if (!existing) return p;
+            return {
+              ...p,
+              thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
+              previewUrl: p.previewUrl || existing.previewUrl,
+            };
+          });
+        });
+        setUploaderNameMap(body.uploaderNames);
+      }
+    }
+
     const channel = supabase
       .channel(`event-gallery:${event.id}`)
       .on(
@@ -332,42 +369,15 @@ function GalleryExperienceInner({
           table: "photos",
           filter: `event_id=eq.${event.id}`,
         },
-        async () => {
-          const response = await fetch(`/api/events/${event.id}/photos`);
-          const body = await readJsonResponse<PhotosResponse>(response);
-
-          if (!body?.photos) {
-            return;
-          }
-
-          const unseenPhotos = body.photos.filter(
-            (photo) => !photoIdsRef.current.has(photo.id),
-          );
-
-          if (unseenPhotos.length > 0) {
-            setPendingPhotos(body.photos);
-            setPendingUploaderNames(body.uploaderNames);
-          } else {
-            // Merge: keep optimistic blob URLs for photos the server doesn't have thumbnails for yet.
-            setPhotos((current) => {
-              const currentMap = new Map(current.map((p) => [p.id, p]));
-              return body.photos.map((p) => {
-                const existing = currentMap.get(p.id);
-                if (!existing) return p;
-                return {
-                  ...p,
-                  thumbnailUrl: p.thumbnailUrl || existing.thumbnailUrl,
-                  previewUrl: p.previewUrl || existing.previewUrl,
-                };
-              });
-            });
-            setUploaderNameMap(body.uploaderNames);
-          }
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => void fetchAndMergePhotos(), 1500);
         },
       )
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       void supabase.removeChannel(channel);
     };
   }, [event.id]);
@@ -924,6 +934,93 @@ function GalleryExperienceInner({
     }
   }
 
+  async function uploadSingleFile(
+    reservation: UploadReservation,
+    file: File,
+    onSuccess: (photo: PhotoRecord) => void,
+    onFail: () => void,
+  ): Promise<"ok" | "fail"> {
+    const MAX_RETRIES = 3;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const r2Response = await fetch(reservation.uploadUrl, {
+          method: reservation.method,
+          headers: reservation.headers,
+          body: file,
+        });
+        if (!r2Response.ok) throw new Error(`R2 upload failed (${r2Response.status})`);
+
+        const completionResponse = await fetch("/api/uploads/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            photoId: reservation.photoId,
+            objectKey: reservation.objectKey,
+          }),
+        });
+        const completionBody = await readJsonResponse<CompletionResponse>(completionResponse);
+        if (!completionResponse.ok || !completionBody?.photo) {
+          throw new Error(completionBody?.error ?? `Failed to process ${file.name}.`);
+        }
+
+        onSuccess(completionBody.photo);
+        return "ok";
+      } catch {
+        if (attempt === MAX_RETRIES) {
+          onFail();
+          return "fail";
+        }
+        // Exponential backoff: 1s, 2s before retrying.
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
+    return "fail";
+  }
+
+  async function runWithAdaptiveConcurrency<T>(
+    items: T[],
+    initialConcurrency: number,
+    fn: (item: T) => Promise<"ok" | "fail">,
+  ) {
+    let index = 0;
+    let concurrency = initialConcurrency;
+    // Mutex-like: only one worker adjusts concurrency at a time.
+    let activeWorkers = 0;
+    let consecutiveFails = 0;
+
+    async function worker() {
+      while (index < items.length) {
+        const item = items[index++];
+        const result = await fn(item);
+
+        if (result === "fail") {
+          consecutiveFails++;
+          // Drop concurrency after 2 consecutive failures: 4→2→1.
+          if (consecutiveFails >= 2 && concurrency > 1) {
+            concurrency = Math.max(1, Math.floor(concurrency / 2));
+            consecutiveFails = 0;
+          }
+        } else {
+          consecutiveFails = 0;
+          // Recover concurrency after 3 consecutive successes, up to initial.
+          if (consecutiveFails === 0 && concurrency < initialConcurrency) {
+            concurrency = Math.min(initialConcurrency, concurrency + 1);
+          }
+        }
+
+        // Shed excess workers if concurrency dropped below active count.
+        if (activeWorkers > concurrency) {
+          activeWorkers--;
+          return;
+        }
+      }
+      activeWorkers--;
+    }
+
+    activeWorkers = Math.min(concurrency, items.length);
+    await Promise.all(Array.from({ length: activeWorkers }, worker));
+  }
+
   async function handleUpload(files: FileList | null) {
     if (!files?.length) {
       return;
@@ -937,122 +1034,30 @@ function GalleryExperienceInner({
 
     const selectedFiles = Array.from(files).slice(0, MAX_BATCH_SIZE);
 
-    try {
-      const reservationResponse = await fetch("/api/uploads/reservations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId: event.id,
-          participantId: participant.id,
-          files: selectedFiles.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-          })),
-        }),
-      });
-      const reservationBody =
-        await readJsonResponse<ReservationResponse>(reservationResponse);
+    const reservationResponse = await fetch("/api/uploads/reservations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventId: event.id,
+        participantId: participant.id,
+        files: selectedFiles.map((file) => ({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        })),
+      }),
+    });
+    const reservationBody = await readJsonResponse<ReservationResponse>(reservationResponse);
 
-      if (
-        !reservationResponse.ok ||
-        !reservationBody?.reservations?.length
-      ) {
-        throw new Error(
-          reservationBody?.error ?? "Upload API unavailable.",
-        );
-      }
-
-      const optimisticPhotos = reservationBody.reservations.map(
-        (reservation) => {
-          const file = selectedFiles[reservation.fileIndex];
-          return {
-            ...createLocalPhoto(file, event.id, participant.id),
-            id: reservation.photoId,
-            originalKey: reservation.objectKey,
-          };
-        },
-      );
-
-      // Eagerly register the real IDs before any async work so the subscription
-      // callback doesn't treat our own upload as "unseen" new photos.
-      for (const p of optimisticPhotos) photoIdsRef.current.add(p.id);
-      setPhotos((currentPhotos) => [...optimisticPhotos, ...currentPhotos]);
-      const uploadingVideos = optimisticPhotos.filter((p) => p.mediaType === "video").length;
-      const uploadingImages = optimisticPhotos.length - uploadingVideos;
-      const uploadingLabel = uploadingVideos > 0 && uploadingImages > 0
-        ? `${optimisticPhotos.length} file${optimisticPhotos.length === 1 ? "" : "s"}`
-        : uploadingVideos > 0
-          ? `${uploadingVideos} video${uploadingVideos === 1 ? "" : "s"}`
-          : `${uploadingImages} photo${uploadingImages === 1 ? "" : "s"}`;
-      setUploadMessage(`Uploading ${uploadingLabel} to private storage...`);
-
-      const completedPhotos = await Promise.all(
-        reservationBody.reservations.map(async (reservation) => {
-          const file = selectedFiles[reservation.fileIndex];
-          await fetch(reservation.uploadUrl, {
-            method: reservation.method,
-            headers: reservation.headers,
-            body: file,
-          });
-
-          const completionResponse = await fetch("/api/uploads/complete", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              photoId: reservation.photoId,
-              objectKey: reservation.objectKey,
-            }),
-          });
-          const completionBody =
-            await readJsonResponse<CompletionResponse>(completionResponse);
-
-          if (!completionResponse.ok || !completionBody?.photo) {
-            throw new Error(
-              completionBody?.error ?? `Failed to process ${file.name}.`,
-            );
-          }
-
-          return completionBody.photo;
-        }),
-      );
-
-      setPhotos((currentPhotos) =>
-        currentPhotos.map((photo) => {
-          const completedPhoto = completedPhotos.find(
-            (nextPhoto) => nextPhoto.id === photo.id,
-          );
-          if (!completedPhoto) return photo;
-          // Keep the optimistic blob URL until the server has a real thumbnail.
-          return {
-            ...completedPhoto,
-            thumbnailUrl: completedPhoto.thumbnailUrl || photo.thumbnailUrl,
-            previewUrl: completedPhoto.previewUrl || photo.previewUrl,
-          };
-        }),
-      );
-      const completedVideos = completedPhotos.filter((p) => p.mediaType === "video").length;
-      const completedImages = completedPhotos.length - completedVideos;
-      const completedLabel = completedVideos > 0 && completedImages > 0
-        ? `${completedPhotos.length} file${completedPhotos.length === 1 ? "" : "s"}`
-        : completedVideos > 0
-          ? `${completedVideos} video${completedVideos === 1 ? "" : "s"}`
-          : `${completedImages} photo${completedImages === 1 ? "" : "s"}`;
-      setUploadMessage(
-        `Uploaded ${completedLabel}${reservationBody.skippedFiles?.length ? `; ${reservationBody.skippedFiles.length} skipped due to storage limits` : ""}.`,
-      );
-    } catch {
+    if (!reservationResponse.ok || !reservationBody?.reservations?.length) {
+      // No R2 — fall back to local demo previews.
       const localPhotos = selectedFiles.map((file) =>
         createLocalPhoto(file, event.id, participant.id),
       );
-
       setPhotos((currentPhotos) => [...localPhotos, ...currentPhotos]);
       setUploadMessage(
-        `Using local demo previews for ${localPhotos.length} photo${
-          localPhotos.length === 1 ? "" : "s"
-        }. Configure Supabase/R2 to persist uploads.`,
+        `Using local demo previews for ${localPhotos.length} photo${localPhotos.length === 1 ? "" : "s"}. Configure Supabase/R2 to persist uploads.`,
       );
-
       window.setTimeout(() => {
         setPhotos((currentPhotos) =>
           currentPhotos.map((photo) =>
@@ -1062,7 +1067,131 @@ function GalleryExperienceInner({
           ),
         );
       }, 900);
+      return;
     }
+
+    // Build optimistic placeholders and show them immediately.
+    const optimisticPhotos = reservationBody.reservations.map((reservation) => {
+      const file = selectedFiles[reservation.fileIndex];
+      return {
+        ...createLocalPhoto(file, event.id, participant.id),
+        id: reservation.photoId,
+        originalKey: reservation.objectKey,
+      };
+    });
+    for (const p of optimisticPhotos) photoIdsRef.current.add(p.id);
+    setPhotos((currentPhotos) => [...optimisticPhotos, ...currentPhotos]);
+
+    // Sort: images first (4 concurrent), then videos (2 concurrent).
+    const imageReservations = reservationBody.reservations.filter(
+      (r) => !selectedFiles[r.fileIndex].type.startsWith("video/"),
+    );
+    const videoReservations = reservationBody.reservations.filter(
+      (r) => selectedFiles[r.fileIndex].type.startsWith("video/"),
+    );
+    const total = reservationBody.reservations.length;
+    let done = 0;
+    setUploadProgress({ done: 0, total });
+    setUploadMessage(null);
+    setFailedUploads(new Map());
+
+    function onSuccess(photo: PhotoRecord) {
+      done++;
+      setUploadProgress({ done, total });
+      setPhotos((currentPhotos) =>
+        currentPhotos.map((p) => {
+          if (p.id !== photo.id) return p;
+          return {
+            ...photo,
+            thumbnailUrl: photo.thumbnailUrl || p.thumbnailUrl,
+            previewUrl: photo.previewUrl || p.previewUrl,
+          };
+        }),
+      );
+    }
+
+    function onFail(reservation: UploadReservation, file: File) {
+      done++;
+      setUploadProgress({ done, total });
+      setFailedUploads((prev) => {
+        const next = new Map(prev);
+        next.set(reservation.photoId, { file, reservation });
+        return next;
+      });
+      // Mark the tile as failed so the user sees it.
+      setPhotos((currentPhotos) =>
+        currentPhotos.map((p) =>
+          p.id === reservation.photoId ? { ...p, status: "failed" } : p,
+        ),
+      );
+    }
+
+    await runWithAdaptiveConcurrency(imageReservations, 4, (reservation) =>
+      uploadSingleFile(reservation, selectedFiles[reservation.fileIndex], onSuccess, () => onFail(reservation, selectedFiles[reservation.fileIndex])),
+    );
+    await runWithAdaptiveConcurrency(videoReservations, 2, (reservation) =>
+      uploadSingleFile(reservation, selectedFiles[reservation.fileIndex], onSuccess, () => onFail(reservation, selectedFiles[reservation.fileIndex])),
+    );
+
+    setUploadProgress(null);
+
+    const failCount = done - (done - (total - [...failedUploads.values()].length));
+    const successCount = total - failedUploads.size;
+    if (failedUploads.size === 0) {
+      const skipped = reservationBody.skippedFiles?.length ?? 0;
+      const videos = videoReservations.length;
+      const images = imageReservations.length;
+      const label = videos > 0 && images > 0
+        ? `${total} file${total === 1 ? "" : "s"}`
+        : videos > 0
+          ? `${total} video${total === 1 ? "" : "s"}`
+          : `${total} photo${total === 1 ? "" : "s"}`;
+      setUploadMessage(`Uploaded ${label}${skipped ? `; ${skipped} skipped due to storage limits` : ""}.`);
+    } else {
+      setUploadMessage(`${successCount} uploaded, ${failedUploads.size} failed — tap to retry.`);
+    }
+  }
+
+  async function retryFailedUpload(photoId: string) {
+    const entry = failedUploads.get(photoId);
+    if (!entry) return;
+
+    setFailedUploads((prev) => {
+      const next = new Map(prev);
+      next.delete(photoId);
+      return next;
+    });
+    setPhotos((currentPhotos) =>
+      currentPhotos.map((p) =>
+        p.id === photoId ? { ...p, status: "processing" } : p,
+      ),
+    );
+
+    await uploadSingleFile(
+      entry.reservation,
+      entry.file,
+      (photo) => {
+        setPhotos((currentPhotos) =>
+          currentPhotos.map((p) => {
+            if (p.id !== photo.id) return p;
+            return { ...photo, thumbnailUrl: photo.thumbnailUrl || p.thumbnailUrl, previewUrl: photo.previewUrl || p.previewUrl };
+          }),
+        );
+        setUploadMessage(null);
+      },
+      () => {
+        setFailedUploads((prev) => {
+          const next = new Map(prev);
+          next.set(photoId, entry);
+          return next;
+        });
+        setPhotos((currentPhotos) =>
+          currentPhotos.map((p) =>
+            p.id === photoId ? { ...p, status: "failed" } : p,
+          ),
+        );
+      },
+    );
   }
 
   function toggleSelect(id: string) {
@@ -1354,7 +1483,30 @@ function GalleryExperienceInner({
 
       <section className="relative z-0 mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5">
 
-        {uploadMessage ? (
+        {uploadProgress ? (
+          <div
+            className="mt-4 overflow-hidden rounded-2xl"
+            style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)" }}
+          >
+            <div className="flex items-center justify-between px-4 py-3">
+              <p className="text-sm" style={{ color: "rgba(255,255,255,.55)" }}>
+                Uploading {uploadProgress.done} / {uploadProgress.total}
+              </p>
+              <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,.30)" }}>
+                {Math.round((uploadProgress.done / uploadProgress.total) * 100)}%
+              </p>
+            </div>
+            <div className="h-0.5 w-full" style={{ background: "rgba(255,255,255,.08)" }}>
+              <div
+                className="h-full transition-all duration-300"
+                style={{
+                  width: `${(uploadProgress.done / uploadProgress.total) * 100}%`,
+                  background: "linear-gradient(90deg, #FF6DAE, #B35DFF)",
+                }}
+              />
+            </div>
+          </div>
+        ) : uploadMessage ? (
           <p
             className="mt-4 rounded-2xl px-4 py-3 text-sm"
             style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.08)", color: "rgba(255,255,255,.55)" }}
@@ -1465,7 +1617,16 @@ function GalleryExperienceInner({
                       </span>
                     </div>
                   </div>
-                  {isProcessing ? (
+                  {photo.status === "failed" && failedUploads.has(photo.id) ? (
+                    <button
+                      className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white transition active:scale-95"
+                      onClick={(e) => { e.stopPropagation(); void retryFailedUpload(photo.id); }}
+                      style={{ background: "#FF5F7B" }}
+                      type="button"
+                    >
+                      Tap to retry
+                    </button>
+                  ) : isProcessing ? (
                     <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
                       Processing
                     </span>
@@ -1542,20 +1703,31 @@ function GalleryExperienceInner({
           <p className="hidden text-sm sm:block" style={{ color: "rgba(255,255,255,.35)" }}>
             {filteredPhotos.length} photo{filteredPhotos.length === 1 ? "" : "s"}
           </p>
-          <label
-            className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
-          >
-            Add photos &amp; videos
-            <input
-              accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm"
-              className="sr-only"
-              multiple
-              onChange={(inputEvent) => handleUpload(inputEvent.target.files)}
-              ref={fileInputRef}
-              type="file"
-            />
-          </label>
+          {participant?.consentVersion === CONSENT_VERSION ? (
+            <label
+              className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
+            >
+              Add photos &amp; videos
+              <input
+                accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm"
+                className="sr-only"
+                multiple
+                onChange={(inputEvent) => handleUpload(inputEvent.target.files)}
+                ref={fileInputRef}
+                type="file"
+              />
+            </label>
+          ) : (
+            <button
+              className="tap-target ml-auto inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
+              onClick={() => setShowIdentityForm(true)}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
+              type="button"
+            >
+              Add photos &amp; videos
+            </button>
+          )}
         </div>
         )}
       </div>
