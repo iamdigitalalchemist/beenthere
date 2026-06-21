@@ -1673,20 +1673,31 @@ function GalleryExperienceInner({
           <p className="hidden text-sm sm:block" style={{ color: "rgba(255,255,255,.35)" }}>
             {filteredPhotos.length} photo{filteredPhotos.length === 1 ? "" : "s"}
           </p>
-          <label
-            className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
-            style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
-          >
-            Add photos &amp; videos
-            <input
-              accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm"
-              className="sr-only"
-              multiple
-              onChange={(inputEvent) => handleUpload(inputEvent.target.files)}
-              ref={fileInputRef}
-              type="file"
-            />
-          </label>
+          {participant?.consentVersion === CONSENT_VERSION ? (
+            <label
+              className="tap-target ml-auto inline-flex cursor-pointer items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
+            >
+              Add photos &amp; videos
+              <input
+                accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm"
+                className="sr-only"
+                multiple
+                onChange={(inputEvent) => handleUpload(inputEvent.target.files)}
+                ref={fileInputRef}
+                type="file"
+              />
+            </label>
+          ) : (
+            <button
+              className="tap-target ml-auto inline-flex items-center justify-center rounded-full px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
+              onClick={() => setShowIdentityForm(true)}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)", boxShadow: "0 8px 24px rgba(205,95,255,.30)" }}
+              type="button"
+            >
+              Add photos &amp; videos
+            </button>
+          )}
         </div>
         )}
       </div>
