@@ -9,6 +9,8 @@ type EventStatusSettingsProps = {
   startsAt: string;
 };
 
+type ActionResponse = { error?: string };
+
 const glass: React.CSSProperties = {
   background: "rgba(255,255,255,.04)",
   border: "1px solid rgba(255,255,255,.08)",
@@ -29,7 +31,7 @@ export function EventStatusSettings({ eventPublicId, status, startsAt }: EventSt
     setIsSubmitting(true);
     setError(null);
     const response = await fetch(`/api/events/${eventPublicId}/close`, { method: "POST" });
-    const body = (await response.json()) as { error?: string };
+    const body = (await response.json()) as ActionResponse;
     if (!response.ok) {
       setError(body.error ?? "Could not close event.");
       setIsSubmitting(false);
@@ -44,9 +46,23 @@ export function EventStatusSettings({ eventPublicId, status, startsAt }: EventSt
     setIsSubmitting(true);
     setError(null);
     const response = await fetch(`/api/events/${eventPublicId}/reopen`, { method: "POST" });
-    const body = (await response.json()) as { error?: string };
+    const body = (await response.json()) as ActionResponse;
     if (!response.ok) {
       setError(body.error ?? "Could not reopen event.");
+      setIsSubmitting(false);
+      return;
+    }
+    router.refresh();
+    setIsSubmitting(false);
+  }
+
+  async function extendEvent() {
+    setIsSubmitting(true);
+    setError(null);
+    const response = await fetch(`/api/events/${eventPublicId}/extend`, { method: "POST" });
+    const body = (await response.json()) as ActionResponse;
+    if (!response.ok) {
+      setError(body.error ?? "Could not extend event.");
       setIsSubmitting(false);
       return;
     }
@@ -117,13 +133,10 @@ export function EventStatusSettings({ eventPublicId, status, startsAt }: EventSt
           <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,.45)" }}>
             This event is closed. The guest gallery, join link, and slideshow are disabled.
           </p>
-          {withinReopenWindow ? (
-            <>
-              <p className="mt-3 text-sm" style={{ color: "rgba(255,255,255,.30)" }}>
-                You can reopen this event — you&apos;re still within the 48-hour window.
-              </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {withinReopenWindow && (
               <button
-                className="mt-4 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
+                className="rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
                 disabled={isSubmitting}
                 onClick={() => void reopenEvent()}
                 style={{ background: "rgba(255,255,255,.10)", border: "1px solid rgba(255,255,255,.12)" }}
@@ -131,10 +144,20 @@ export function EventStatusSettings({ eventPublicId, status, startsAt }: EventSt
               >
                 {isSubmitting ? "Reopening…" : "Reopen event"}
               </button>
-            </>
-          ) : (
+            )}
+            <button
+              className="rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-50"
+              disabled={isSubmitting}
+              onClick={() => void extendEvent()}
+              style={{ background: "linear-gradient(135deg, #FF6DAE, #B35DFF)" }}
+              type="button"
+            >
+              {isSubmitting ? "Opening…" : "Keep open until I close it"}
+            </button>
+          </div>
+          {!withinReopenWindow && (
             <p className="mt-3 text-sm" style={{ color: "rgba(255,255,255,.30)" }}>
-              The 48-hour reopen window has passed.
+              The 48-hour reopen window has passed, but you can still keep the event open indefinitely.
             </p>
           )}
         </>
